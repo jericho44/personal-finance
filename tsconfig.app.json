@@ -1,0 +1,39 @@
+{
+    "compilerOptions": {
+        "types": ["google.maps", "jquery"],
+        "target": "ES2020",
+        "useDefineForClassFields": true,
+        "lib": ["ES2020", "DOM", "DOM.Iterable"],
+        "module": "ESNext",
+        "skipLibCheck": true,
+
+        /* Bundler mode */
+        "moduleResolution": "Bundler",
+        "allowImportingTsExtensions": true,
+        "isolatedModules": true,
+        "moduleDetection": "force",
+        "noEmit": true,
+        "jsx": "preserve",
+        "strict": true,
+        "noUnusedLocals": true,
+        "noUnusedParameters": true,
+        "noFallthroughCasesInSwitch": true,
+        "baseUrl": ".",
+        "paths": {
+            "@/*": ["./resources/js/*"],
+            "@src/*": ["./resources/js/*"],
+            "@components/*": ["./resources/js/components/*"],
+            "@plugins/*": ["./resources/js/plugins/*"],
+            "@services/*": ["./resources/js/services/*"],
+            "@stores/*": ["./resources/js/stores/*"],
+            "@routes/*": ["./resources/js/routes/*"],
+            "@views/*": ["./resources/js/views/*"],
+            "@layouts/*": ["./resources/js/layouts/*"]
+        }
+    },
+    "include": [
+        "resources/js/**/*.ts",
+        "resources/js/**/*.tsx",
+        "resources/js/**/*.vue"
+    ]
+}

@@ -1,0 +1,40 @@
+.bg-red {
+    background-color: #e84c3d;
+}
+
+.btn-red {
+    background-color: #e84c3d;
+    color: white;
+}
+
+.text-red {
+    color:#e84c3d;
+}
+
+.bg-light-red {
+    background-color: #fce8e7;
+}
+
+.btn-light-red {
+    background-color: #fce8e7;
+    color: #e84c3d;
+}
+
+.btn-yellow {
+    background-color: #f6bf00;
+    color: 'white';
+}
+
+/* for datepicker */
+.mx-input {
+    padding: 20px 10px !important;
+    font-size: 1.1rem !important;
+    line-height: 1.5 !important;
+    color: black !important;
+    border: 1px solid #e4e6ef;
+    width: 100% !important;
+}
+
+.mx-datepicker {
+    width: 100% !important;
+}

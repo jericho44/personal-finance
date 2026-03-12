@@ -1,0 +1,1075 @@
+cache:
+  key: "${CI_COMMIT_REF_SLUG}-${CI_JOB_NAME}"
+  paths:
+    - .composer-cache/
+    - .npm-cache/
+    - vendor/
+  policy: pull-push
+  when: always
+
+variables:
+  # Global configurations
+  SCAN_KUBERNETES_MANIFESTS: "false"
+  SEARCH_MAX_DEPTH: 4
+  DOCKER_TLS_CERTDIR: ""
+
+  # Enable GitLab's basic security scanners (available in free tier)
+  SAST_DISABLED: "false"
+  SECRET_DETECTION_DISABLED: "false"
+  DEPENDENCY_SCANNING_DISABLED: "false"
+
+  # These ensure that any AUTO-DevOps security scans won't run
+  CONTAINER_SCANNING_DISABLED: "true"
+  DAST_DISABLED: "true"
+  COVERAGE_DISABLED: "true"
+
+stages:
+  - build
+  - test
+  - security
+  - deploy
+
+# Enable GitLab's security templates (free tier features)
+include:
+  - template: Security/SAST.gitlab-ci.yml
+  - template: Security/Secret-Detection.gitlab-ci.yml
+  - template: Security/Dependency-Scanning.gitlab-ci.yml
+
+.docker-login:
+  before_script:
+    - |
+      echo "🔐 Logging into Docker registry..."
+      echo "$CI_REGISTRY_PASSWORD" | docker login -u "$CI_REGISTRY_USER" --password-stdin "$CI_REGISTRY" || {
+        echo "❌ Docker login failed"
+        exit 1
+      }
+
+build:
+  stage: build
+  image: registry.gitlab.com/energeek/docker-images/custom-php:8.2-v2
+  tags:
+    - energeek_build_docker_runner_php82
+  extends: .docker-login
+  script:
+    - |
+      # Setup cache directories
+      mkdir -p .composer-cache
+      composer config cache-dir .composer-cache
+      mkdir -p .npm-cache
+      npm config set cache .npm-cache --global
+
+      # Capture start time
+      BUILD_START_TIME=$(date +%s)
+      echo "⏰ Build Started at: $(date '+%Y-%m-%d %H:%M:%S')"
+      echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+      echo "📋 Checking PHP Modules..."
+      php -m
+
+      echo "🚀 Starting Build Process..."
+      echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+
+      echo "🔍 Checking Environment..."
+      echo "PHP Version: $(php -v | head -n 1)"
+      echo "Node Version: $(node -v)"
+      echo "NPM Version: $(npm -v)"
+      echo "Composer Version: $(composer --version)"
+      echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+
+      echo "📦 Installing Composer Dependencies..."
+      COMPOSER_START_TIME=$(date +%s)
+      if ! composer install --prefer-dist --no-ansi --no-interaction --no-progress --no-scripts; then
+        echo "❌ Composer Installation Failed!"
+        echo "🔎 Possible issues:"
+        echo "  • Invalid composer.json configuration"
+        echo "  • Network connectivity problems"
+        echo "  • Package conflicts"
+        echo "Please check the error messages above."
+        exit 1
+      fi
+      COMPOSER_END_TIME=$(date +%s)
+      COMPOSER_DURATION=$((COMPOSER_END_TIME - COMPOSER_START_TIME))
+      echo "✅ Composer dependencies installed successfully! (Duration: ${COMPOSER_DURATION}s)"
+      echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+
+      echo "📦 Installing NPM Dependencies..."
+      NPM_START_TIME=$(date +%s)
+      if ! npm ci --no-audit; then
+        echo "❌ NPM Installation Failed!"
+        echo "📊 Current package status:"
+        npm ls --depth=0
+        echo "🔎 Possible issues:"
+        echo "  • Package-lock.json mismatch"
+        echo "  • Missing dependencies"
+        echo "  • Network issues"
+        exit 1
+      fi
+      NPM_END_TIME=$(date +%s)
+      NPM_DURATION=$((NPM_END_TIME - NPM_START_TIME))
+      echo "✅ NPM dependencies installed successfully! (Duration: ${NPM_DURATION}s)"
+      echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+
+      echo "🔨 Building Frontend Assets..."
+      BUILD_ASSETS_START_TIME=$(date +%s)
+      if ! npm run build; then
+        echo "❌ Frontend Build Failed!"
+        echo "Please check the build errors above."
+        exit 1
+      fi
+      BUILD_ASSETS_END_TIME=$(date +%s)
+      BUILD_ASSETS_DURATION=$((BUILD_ASSETS_END_TIME - BUILD_ASSETS_START_TIME))
+      echo "✅ Frontend assets built successfully! (Duration: ${BUILD_ASSETS_DURATION}s)"
+      echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+
+      echo "🔧 Setting up Environment..."
+      ENV_START_TIME=$(date +%s)
+      if [ ! -f .env ]; then
+        echo "Creating .env file from example..."
+        cp .env.example .env
+        php artisan key:generate
+        echo "✅ Environment file created and key generated!"
+      else
+        echo "✅ Environment file already exists!"
+      fi
+      ENV_END_TIME=$(date +%s)
+      ENV_DURATION=$((ENV_END_TIME - ENV_START_TIME))
+      echo "Environment setup completed! (Duration: ${ENV_DURATION}s)"
+      echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+
+      echo "🧹 Clearing Cache..."
+      CACHE_START_TIME=$(date +%s)
+      php artisan optimize:clear
+      CACHE_END_TIME=$(date +%s)
+      CACHE_DURATION=$((CACHE_END_TIME - CACHE_START_TIME))
+      echo "✅ Cache cleared successfully! (Duration: ${CACHE_DURATION}s)"
+      echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+
+      # Calculate total build time
+      BUILD_END_TIME=$(date +%s)
+      BUILD_DURATION=$((BUILD_END_TIME - BUILD_START_TIME))
+
+      # Convert seconds to hours, minutes, and seconds
+      BUILD_HOURS=$((BUILD_DURATION / 3600))
+      BUILD_MINUTES=$(((BUILD_DURATION % 3600) / 60))
+      BUILD_SECONDS=$((BUILD_DURATION % 60))
+
+      echo "🎉 Build Process Completed Successfully!"
+      echo "⏱️ Build Duration Breakdown:"
+      echo "  • Composer Installation: ${COMPOSER_DURATION}s"
+      echo "  • NPM Installation: ${NPM_DURATION}s"
+      echo "  • Frontend Assets Build: ${BUILD_ASSETS_DURATION}s"
+      echo "  • Environment Setup: ${ENV_DURATION}s"
+      echo "  • Cache Clearing: ${CACHE_DURATION}s"
+      echo ""
+      echo "⏰ Build Started at: $(date -d @$BUILD_START_TIME '+%Y-%m-%d %H:%M:%S')"
+      echo "⏰ Build Finished at: $(date -d @$BUILD_END_TIME '+%Y-%m-%d %H:%M:%S')"
+      echo "⌛ Total Build Time: ${BUILD_HOURS}h ${BUILD_MINUTES}m ${BUILD_SECONDS}s"
+      echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+      echo "📝 Summary of artifacts:"
+      echo "  • vendor/ - PHP dependencies"
+      echo "  • node_modules/ - Node dependencies"
+      echo "  • public/build/ - Build Frontend Asset"
+      echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+  artifacts:
+    when: on_success
+    expire_in: 1 day
+    paths:
+      - vendor/
+      - node_modules/
+      - public/build/
+  interruptible: true
+
+code_check:
+  stage: test
+  needs:
+    - job: build
+      artifacts: true
+  allow_failure: true
+  image: registry.gitlab.com/energeek/docker-images/custom-php:8.2-v2
+  tags:
+    - energeek_build_docker_runner_php82
+  before_script:
+    - |
+      # Setup cache directories
+      mkdir -p .composer-cache
+      composer config cache-dir .composer-cache
+      mkdir -p .npm-cache
+      npm config set cache .npm-cache --global
+
+      # Install PHPStan if not present
+      if [ ! -f vendor/bin/phpstan ]; then
+        echo "📦 Installing PHPStan..."
+        composer require --dev phpstan/phpstan
+      fi
+  script:
+    - |
+      echo "🚀 Starting Static Analysis Process..."
+      echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+
+      # Capture start time
+      ANALYSIS_START_TIME=$(date +%s)
+      echo "⏰ Analysis Started at: $(date '+%Y-%m-%d %H:%M:%S')"
+      echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+      echo "📋 Checking PHP Modules..."
+      php -m
+
+      echo "🔍 Checking Environment..."
+      echo "PHP Version: $(php -v | head -n 1)"
+      echo "Node Version: $(node -v)"
+      echo "NPM Version: $(npm -v)"
+      echo "Composer Version: $(composer --version)"
+      echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+
+      # Setup Environment
+      if [ ! -f .env ]; then
+        echo "📝 Creating Environment File..."
+        cp .env.example .env
+        php artisan key:generate
+      fi
+
+      # Clear Laravel Cache
+      echo "🧹 Clearing Application Cache..."
+      php artisan optimize:clear
+
+      # Run PHPStan Analysis
+      echo "🔍 Running Static Analysis..."
+      mkdir -p reports
+      if ! ./vendor/bin/phpstan analyse app --memory-limit=1G --error-format=junit > reports/phpstan.xml; then
+        echo "⚠️ PHPStan found some issues. Check the report for details."
+      fi
+
+      # Calculate execution time
+      ANALYSIS_END_TIME=$(date +%s)
+      ANALYSIS_DURATION=$((ANALYSIS_END_TIME - ANALYSIS_START_TIME))
+      ANALYSIS_HOURS=$((ANALYSIS_DURATION / 3600))
+      ANALYSIS_MINUTES=$(( (ANALYSIS_DURATION % 3600) / 60 ))
+      ANALYSIS_SECONDS=$((ANALYSIS_DURATION % 60))
+
+      echo ""
+      echo "📊 Analysis Summary:"
+      echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+      echo "⏰ Analysis Started at: $(date -d @$ANALYSIS_START_TIME '+%Y-%m-%d %H:%M:%S')"
+      echo "⏰ Analysis Finished at: $(date -d @$ANALYSIS_END_TIME '+%Y-%m-%d %H:%M:%S')"
+      echo "⌛ Total Analysis Time: ${ANALYSIS_HOURS}h ${ANALYSIS_MINUTES}m ${ANALYSIS_SECONDS}s"
+      echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+  artifacts:
+    reports:
+      junit: reports/phpstan.xml
+    expire_in: 1 week
+  only:
+    - development
+    - main
+  interruptible: true
+
+testing:
+  stage: test
+  needs:
+    - job: build
+      artifacts: true
+  allow_failure: true
+  image: registry.gitlab.com/energeek/docker-images/custom-php:8.2-v2
+  tags:
+    - energeek_build_docker_runner_php82
+  before_script:
+    - |
+      # Setup cache directories
+      mkdir -p .composer-cache .npm-cache
+      composer config cache-dir .composer-cache
+      npm config set cache .npm-cache --global
+
+  script:
+    - |
+      echo "🚀 Starting Testing Process..."
+      echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+
+      # Capture start time
+      TEST_START_TIME=$(date +%s)
+      echo "⏰ Testing Started at: $(date '+%Y-%m-%d %H:%M:%S')"
+      echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+      echo "📋 Checking PHP Modules..."
+      php -m
+
+      echo "🔍 Checking Environment..."
+      echo "PHP Version: $(php -v | head -n 1)"
+      echo "Node Version: $(node -v)"
+      echo "NPM Version: $(npm -v)"
+      echo "Composer Version: $(composer --version)"
+      echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+
+      # Setup Environment
+      if [ ! -f .env ]; then
+        echo "📝 Creating Environment File..."
+        cp .env.example .env
+        php artisan key:generate
+      fi
+
+      # Clear Laravel Cache
+      echo "🧹 Clearing Application Cache..."
+      php artisan optimize:clear
+
+      # Create reports directory
+      mkdir -p reports
+
+      echo "🧪 Running Unit Tests..."
+      echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+      if ! php artisan test --log-junit reports/junit.xml; then
+        echo "❌ Tests failed! Check the console output above."
+        exit 1
+      fi
+
+      # Calculate execution time
+      TEST_END_TIME=$(date +%s)
+      TEST_DURATION=$((TEST_END_TIME - TEST_START_TIME))
+      TEST_HOURS=$((TEST_DURATION / 3600))
+      TEST_MINUTES=$(( (TEST_DURATION % 3600) / 60 ))
+      TEST_SECONDS=$((TEST_DURATION % 60))
+
+      echo ""
+      echo "📊 Testing Summary:"
+      echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+      echo "⏰ Testing Started at: $(date -d @$TEST_START_TIME '+%Y-%m-%d %H:%M:%S')"
+      echo "⏰ Testing Finished at: $(date -d @$TEST_END_TIME '+%Y-%m-%d %H:%M:%S')"
+      echo "⌛ Total Testing Time: ${TEST_HOURS}h ${TEST_MINUTES}m ${TEST_SECONDS}s"
+      echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+  artifacts:
+    reports:
+      junit: reports/junit.xml
+    when: always
+    expire_in: 1 week
+  only:
+    - development
+    - main
+  interruptible: true
+
+# ----- SECURITY SCANNING JOBS -----
+
+# Custom Secret Detection to augment GitLab's built-in scanner
+secret_detection_custom:
+  stage: security
+  needs: []
+  interruptible: true
+  image: registry.gitlab.com/gitlab-org/security-products/analyzers/secrets:5
+  variables:
+    DOCKER_TLS_CERTDIR: ""
+  before_script:
+    - apk add --no-cache git grep
+  script:
+    - |
+      echo "🔍 Running enhanced secret detection..."
+      mkdir -p security-reports
+
+      # Search for potential secrets in the codebase
+      echo "Scanning for potential hardcoded secrets..."
+      SECRETS_FOUND=0
+
+      # Use analyzer to detect secrets
+      mkdir -p /tmp/scan
+      cp -r . /tmp/scan
+      cd /tmp/scan
+
+      # Enhanced patterns for better secret detection
+      git grep -i -E "(api[_-]?key|api[_-]?secret|token|password|secret|aws_access_key|aws_secret_key|private_key|BEGIN.*PRIVATE|ssh-rsa)[_]?[=:]" --cached | grep -v "SECRET_DETECTION_EXCLUDED_PATTERNS" > /builds/$CI_PROJECT_PATH/security-reports/potential-secrets.txt || true
+
+      # Check for .env files that might contain secrets
+      find . -name ".env*" -not -path "*.env.example*" -not -path "*.env.sample*" > /builds/$CI_PROJECT_PATH/security-reports/env-files.txt || true
+
+      cd /builds/$CI_PROJECT_PATH
+
+      if [ -s "security-reports/potential-secrets.txt" ]; then
+        SECRETS_FOUND=1
+        echo "⚠️ Potential secrets found:"
+        cat security-reports/potential-secrets.txt
+      else
+        echo "✅ No potential secrets found!"
+      fi
+
+      if [ -s "security-reports/env-files.txt" ]; then
+        echo "⚠️ Found .env files that might contain secrets:"
+        cat security-reports/env-files.txt
+      fi
+
+      # Generate summary report with improved formatting
+      echo "📊 Secret Detection Summary" > security-reports/secret-detection-summary.txt
+      echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━" >> security-reports/secret-detection-summary.txt
+      if [ $SECRETS_FOUND -eq 1 ]; then
+        echo "⚠️ Found potential secrets in the codebase" >> security-reports/secret-detection-summary.txt
+        echo "Review security-reports/potential-secrets.txt for details" >> security-reports/secret-detection-summary.txt
+        echo "Consider using GitLab CI/CD variables instead of hardcoded secrets" >> security-reports/secret-detection-summary.txt
+      else
+        echo "✅ No potential secrets detected in the codebase" >> security-reports/secret-detection-summary.txt
+      fi
+      echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━" >> security-reports/secret-detection-summary.txt
+
+      # Create JSON format for better integration
+      {
+        echo '{'
+        echo '  "scan_type": "secret_detection",'
+        echo '  "scan_date": "'$(date -u +"%Y-%m-%dT%H:%M:%SZ")'",'
+        echo '  "found_secrets": '$SECRETS_FOUND','
+        if [ $SECRETS_FOUND -eq 1 ]; then
+          echo '  "secret_count": '$(wc -l < security-reports/potential-secrets.txt)','
+        else
+          echo '  "secret_count": 0,'
+        fi
+        echo '  "status": "'$([ $SECRETS_FOUND -eq 0 ] && echo "passed" || echo "failed")'"'
+        echo '}'
+      } > security-reports/secret-detection.json
+
+      # Display summary
+      cat security-reports/secret-detection-summary.txt
+
+      # Exit with success (we allow failure in the rules)
+      exit 0
+  artifacts:
+    paths:
+      - security-reports/
+    reports:
+      secret_detection: security-reports/secret-detection.json
+    expire_in: 1 week
+    when: always
+  rules:
+    - if: '$CI_PIPELINE_SOURCE == "merge_request_event"'
+      when: always
+    - if: "$CI_COMMIT_BRANCH =~ /^(main|development)$/"
+      changes:
+        - "**/*.php"
+        - "**/*.js"
+        - "**/*.vue"
+        - "**/*.env*"
+        - "**/*.yml"
+        - "**/*.yaml"
+        - "composer.json"
+        - "package.json"
+      when: always
+    - when: never
+  allow_failure: true
+
+# Custom SAST for Laravel using PHP Syntax Check
+sast_custom:
+  stage: security
+  needs: []
+  interruptible: true
+  image: php:8.2-cli
+  variables:
+    DOCKER_TLS_CERTDIR: ""
+  before_script:
+    - apt-get update -y
+    - apt-get install -y git grep
+  script:
+    - |
+      echo "🔍 Running custom SAST analysis..."
+      mkdir -p security-reports
+
+      # Simple PHP syntax check
+      echo "Performing PHP syntax check..."
+      ERROR_COUNT=0
+      SYNTAX_ISSUES=""
+
+      # Find all PHP files and check syntax
+      find . -name "*.php" -not -path "./vendor/*" -not -path "./node_modules/*" -not -path "./storage/*" | while read file; do
+        php -l "$file" > /dev/null 2> security-reports/php-errors.txt || true
+        if [ -s "security-reports/php-errors.txt" ]; then
+          ERROR_COUNT=$((ERROR_COUNT + 1))
+          SYNTAX_ISSUES="$SYNTAX_ISSUES\n$(cat security-reports/php-errors.txt) in $file"
+        fi
+      done
+
+      # Check for common security issues in PHP code
+      echo "Scanning for common security patterns..."
+      VULN_COUNT=0
+
+      # Check for potential SQL injection points
+      git grep -i -E "DB::raw|DB::select|DB::update|DB::delete|\$request.*->.*sql|->whereRaw" --cached | grep -v "prepared statements" > security-reports/sql-injection.txt || true
+      if [ -s "security-reports/sql-injection.txt" ]; then
+        VULN_COUNT=$((VULN_COUNT + $(wc -l < security-reports/sql-injection.txt)))
+      fi
+
+      # Check for XSS vulnerabilities
+      git grep -i -E "{!! .*\$|echo .*\$|print .*\$|<script.*\$|->html\(" --cached | grep -v "e(" > security-reports/xss.txt || true
+      if [ -s "security-reports/xss.txt" ]; then
+        VULN_COUNT=$((VULN_COUNT + $(wc -l < security-reports/xss.txt)))
+      fi
+
+      # Generate summary report
+      echo "📊 SAST Analysis Summary" > security-reports/sast-summary.txt
+      echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━" >> security-reports/sast-summary.txt
+      echo "PHP Syntax Issues: $ERROR_COUNT" >> security-reports/sast-summary.txt
+      echo "Potential Security Vulnerabilities: $VULN_COUNT" >> security-reports/sast-summary.txt
+      echo "" >> security-reports/sast-summary.txt
+
+      if [ $ERROR_COUNT -gt 0 ] || [ $VULN_COUNT -gt 0 ]; then
+        echo "⚠️ Issues found:" >> security-reports/sast-summary.txt
+        if [ $ERROR_COUNT -gt 0 ]; then
+          echo "Syntax errors detected:$SYNTAX_ISSUES" >> security-reports/sast-summary.txt
+        fi
+        if [ $VULN_COUNT -gt 0 ]; then
+          echo "Potential security issues: Check the detailed reports" >> security-reports/sast-summary.txt
+          if [ -s "security-reports/sql-injection.txt" ]; then
+            echo "- SQL Injection risks ($(wc -l < security-reports/sql-injection.txt) occurrences)" >> security-reports/sast-summary.txt
+          fi
+          if [ -s "security-reports/xss.txt" ]; then
+            echo "- XSS risks ($(wc -l < security-reports/xss.txt) occurrences)" >> security-reports/sast-summary.txt
+          fi
+        fi
+      else
+        echo "✅ No issues detected!" >> security-reports/sast-summary.txt
+      fi
+      echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━" >> security-reports/sast-summary.txt
+
+      # Display summary
+      cat security-reports/sast-summary.txt
+
+      # Exit with success (we allow failure in the rules)
+      exit 0
+  artifacts:
+    paths:
+      - security-reports/
+    expire_in: 1 week
+    when: always
+  rules:
+    - if: '$CI_PIPELINE_SOURCE == "merge_request_event"'
+      changes:
+        - "**/*.php"
+      when: always
+    - if: "$CI_COMMIT_BRANCH =~ /^(main|development)$/"
+      changes:
+        - "**/*.php"
+      when: always
+    - when: never
+  allow_failure: true
+
+# Custom Dependency scanning for Laravel and NPM
+dependency_scanning_custom:
+  stage: security
+  needs: []
+  interruptible: true
+  image: registry.gitlab.com/gitlab-org/security-products/analyzers/gemnasium:2
+  variables:
+    DOCKER_TLS_CERTDIR: ""
+  before_script:
+    - apt-get update -y
+    - apt-get install -y curl jq git
+    - curl -sS https://deb.nodesource.com/setup_18.x | bash -
+    - apt-get install -y nodejs
+    - curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/local/bin --filename=composer
+  script:
+    - |
+      echo "🔍 Running custom dependency scanning..."
+      mkdir -p security-reports
+
+      # Check PHP dependencies
+      VULN_COUNT=0
+
+      if [ -f "composer.json" ]; then
+        echo "Checking PHP dependencies..."
+        composer audit --format=json > security-reports/composer-audit.json || true
+
+        if [ -s "security-reports/composer-audit.json" ]; then
+          PHP_VULN_COUNT=$(jq '.vulnerabilities | length' security-reports/composer-audit.json 2>/dev/null || echo "0")
+          VULN_COUNT=$((VULN_COUNT + PHP_VULN_COUNT))
+
+          if [ "$PHP_VULN_COUNT" -gt 0 ]; then
+            echo "⚠️ Found $PHP_VULN_COUNT vulnerable PHP dependencies"
+            jq -r '.vulnerabilities[] | "- " + .package + ": " + .title' security-reports/composer-audit.json 2>/dev/null || echo "Error parsing vulnerabilities"
+          else
+            echo "✅ No vulnerable PHP dependencies found"
+          fi
+        fi
+      else
+        echo "No composer.json found, skipping PHP dependency check"
+      fi
+
+      # Check JS dependencies
+      if [ -f "package.json" ]; then
+        echo "Checking JavaScript dependencies..."
+        npm audit --json > security-reports/npm-audit.json || true
+
+        if [ -s "security-reports/npm-audit.json" ]; then
+          JS_VULN_COUNT=$(jq '.metadata.vulnerabilities.total' security-reports/npm-audit.json 2>/dev/null || echo "0")
+          VULN_COUNT=$((VULN_COUNT + JS_VULN_COUNT))
+
+          if [ "$JS_VULN_COUNT" -gt 0 ]; then
+            echo "⚠️ Found $JS_VULN_COUNT vulnerable JavaScript dependencies"
+            # Extract high and critical vulnerabilities
+            HIGH_CRIT=$(jq '.metadata.vulnerabilities.high + .metadata.vulnerabilities.critical' security-reports/npm-audit.json 2>/dev/null || echo "0")
+            echo "   ($HIGH_CRIT high or critical severity)"
+          else
+            echo "✅ No vulnerable JavaScript dependencies found"
+          fi
+        fi
+      else
+        echo "No package.json found, skipping JavaScript dependency check"
+      fi
+
+      # Generate summary report
+      echo "📊 Dependency Scan Summary" > security-reports/dependency-scan-summary.txt
+      echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━" >> security-reports/dependency-scan-summary.txt
+      echo "Total Vulnerabilities: $VULN_COUNT" >> security-reports/dependency-scan-summary.txt
+      echo "" >> security-reports/dependency-scan-summary.txt
+
+      if [ $VULN_COUNT -gt 0 ]; then
+        echo "⚠️ Vulnerabilities found in dependencies" >> security-reports/dependency-scan-summary.txt
+        if [ -f "composer.json" ] && [ -s "security-reports/composer-audit.json" ]; then
+          PHP_VULN_COUNT=$(jq '.vulnerabilities | length' security-reports/composer-audit.json 2>/dev/null || echo "0")
+          if [ "$PHP_VULN_COUNT" -gt 0 ]; then
+            echo "PHP Vulnerabilities: $PHP_VULN_COUNT" >> security-reports/dependency-scan-summary.txt
+            jq -r '.vulnerabilities[] | "- " + .package + ": " + .title' security-reports/composer-audit.json >> security-reports/dependency-scan-summary.txt 2>/dev/null || echo "Error parsing PHP vulnerabilities" >> security-reports/dependency-scan-summary.txt
+          fi
+        fi
+
+        if [ -f "package.json" ] && [ -s "security-reports/npm-audit.json" ]; then
+          JS_VULN_COUNT=$(jq '.metadata.vulnerabilities.total' security-reports/npm-audit.json 2>/dev/null || echo "0")
+          if [ "$JS_VULN_COUNT" -gt 0 ]; then
+            echo "JavaScript Vulnerabilities: $JS_VULN_COUNT" >> security-reports/dependency-scan-summary.txt
+            echo "Severity breakdown:" >> security-reports/dependency-scan-summary.txt
+            jq -r '.metadata.vulnerabilities | "- Critical: " + (.critical | tostring) + "\n- High: " + (.high | tostring) + "\n- Moderate: " + (.moderate | tostring) + "\n- Low: " + (.low | tostring)' security-reports/npm-audit.json >> security-reports/dependency-scan-summary.txt 2>/dev/null || echo "Error parsing JS vulnerabilities" >> security-reports/dependency-scan-summary.txt
+          fi
+        fi
+      else
+        echo "✅ No vulnerabilities found in dependencies" >> security-reports/dependency-scan-summary.txt
+      fi
+      echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━" >> security-reports/dependency-scan-summary.txt
+
+      # Display summary
+      cat security-reports/dependency-scan-summary.txt
+
+      # Exit with success (we allow failure in the rules)
+      exit 0
+  artifacts:
+    paths:
+      - security-reports/
+    expire_in: 1 week
+    when: always
+  rules:
+    - if: '$CI_PIPELINE_SOURCE == "merge_request_event"'
+      changes:
+        - "composer.json"
+        - "composer.lock"
+        - "package.json"
+        - "package-lock.json"
+        - "yarn.lock"
+      when: always
+    - if: "$CI_COMMIT_BRANCH =~ /^(main|development)$/"
+      changes:
+        - "composer.json"
+        - "composer.lock"
+        - "package.json"
+        - "package-lock.json"
+        - "yarn.lock"
+      when: always
+    - when: never
+  allow_failure: true
+
+# Improved Security Dashboard
+security_dashboard:
+  stage: security
+  needs:
+    - job: sast_custom
+      optional: true
+      artifacts: true
+    - job: secret_detection_custom
+      optional: true
+      artifacts: true
+    - job: dependency_scanning_custom
+      optional: true
+      artifacts: true
+  image: alpine:latest
+  before_script:
+    - apk add --no-cache jq
+  script:
+    - |
+      echo "🔐 Generating enhanced security dashboard..."
+      mkdir -p reports
+
+      # Combine all security reports into a single dashboard
+      REPORTS_COUNT=0
+      VULNS_COUNT=0
+      CRITICAL=0
+      HIGH=0
+      MEDIUM=0
+      LOW=0
+      INFO=0
+
+      # Process SAST results
+      if [ -f "security-reports/sast-summary.txt" ]; then
+        REPORTS_COUNT=$((REPORTS_COUNT + 1))
+        # Count vulnerabilities from our custom SAST summary
+        SYNTAX_ERRORS=$(grep -c "Syntax errors found" security-reports/sast-summary.txt || echo 0)
+        SECURITY_ISSUES=$(grep -c "Potential security issues found" security-reports/sast-summary.txt || echo 0)
+
+        # Add to total count
+        VULNS=$((SYNTAX_ERRORS + SECURITY_ISSUES))
+        VULNS_COUNT=$((VULNS_COUNT + VULNS))
+
+        # Assume all issues are medium severity for simplicity
+        MEDIUM=$((MEDIUM + VULNS))
+      fi
+
+      # Process Secret Detection results
+      if [ -f "security-reports/secret-detection-summary.txt" ]; then
+        REPORTS_COUNT=$((REPORTS_COUNT + 1))
+
+        # Count potential secrets found
+        if grep -q "Found potential secrets" security-reports/secret-detection-summary.txt; then
+          # Assume all found secrets are high severity
+          SECRETS_FOUND=1
+          HIGH=$((HIGH + SECRETS_FOUND))
+          VULNS_COUNT=$((VULNS_COUNT + SECRETS_FOUND))
+        fi
+      fi
+
+      # Process Dependency Scanning results
+      if [ -f "security-reports/dependency-scan-summary.txt" ]; then
+        REPORTS_COUNT=$((REPORTS_COUNT + 1))
+
+        # Parse the dependency scan summary to count vulnerabilities
+        PHP_VULNS=$(grep -Po 'PHP Vulnerabilities: \K\d+' security-reports/dependency-scan-summary.txt || echo 0)
+        JS_VULNS=$(grep -Po 'JavaScript Vulnerabilities: \K\d+' security-reports/dependency-scan-summary.txt || echo 0)
+
+        # Add to total count
+        DEP_VULNS=$((PHP_VULNS + JS_VULNS))
+        VULNS_COUNT=$((VULNS_COUNT + DEP_VULNS))
+
+        # Try to extract severity breakdown, fallback to medium if can't parse
+        CRITICAL_DEPS=$(grep -Po '- Critical: \K\d+' security-reports/dependency-scan-summary.txt || echo 0)
+        HIGH_DEPS=$(grep -Po '- High: \K\d+' security-reports/dependency-scan-summary.txt || echo 0)
+        MEDIUM_DEPS=$(grep -Po '- Moderate: \K\d+' security-reports/dependency-scan-summary.txt || echo 0)
+        LOW_DEPS=$(grep -Po '- Low: \K\d+' security-reports/dependency-scan-summary.txt || echo 0)
+
+        # Add to severity counts
+        CRITICAL=$((CRITICAL + CRITICAL_DEPS))
+        HIGH=$((HIGH + HIGH_DEPS))
+        MEDIUM=$((MEDIUM + MEDIUM_DEPS))
+        LOW=$((LOW + LOW_DEPS))
+      fi
+
+      # Also check for GitLab's built-in scanners results (if available)
+      if [ -d "gl-reports" ]; then
+        for report in gl-reports/*.json; do
+          if [ -f "$report" ]; then
+            REPORTS_COUNT=$((REPORTS_COUNT + 1))
+            REPORT_VULNS=$(jq '.vulnerabilities | length' "$report" 2>/dev/null || echo 0)
+            VULNS_COUNT=$((VULNS_COUNT + REPORT_VULNS))
+
+            # Extract severity counts if possible
+            REPORT_CRITICAL=$(jq '[.vulnerabilities[] | select(.severity == "Critical")] | length' "$report" 2>/dev/null || echo 0)
+            REPORT_HIGH=$(jq '[.vulnerabilities[] | select(.severity == "High")] | length' "$report" 2>/dev/null || echo 0)
+            REPORT_MEDIUM=$(jq '[.vulnerabilities[] | select(.severity == "Medium")] | length' "$report" 2>/dev/null || echo 0)
+            REPORT_LOW=$(jq '[.vulnerabilities[] | select(.severity == "Low")] | length' "$report" 2>/dev/null || echo 0)
+            REPORT_INFO=$(jq '[.vulnerabilities[] | select(.severity == "Info")] | length' "$report" 2>/dev/null || echo 0)
+
+            CRITICAL=$((CRITICAL + REPORT_CRITICAL))
+            HIGH=$((HIGH + REPORT_HIGH))
+            MEDIUM=$((MEDIUM + REPORT_MEDIUM))
+            LOW=$((LOW + REPORT_LOW))
+            INFO=$((INFO + REPORT_INFO))
+          fi
+        done
+      fi
+
+      # Generate text summary report
+      echo "📊 Security Scan Summary" > reports/security-summary.txt
+      echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━" >> reports/security-summary.txt
+      echo "Total scans completed: $REPORTS_COUNT" >> reports/security-summary.txt
+      echo "Total vulnerabilities found: $VULNS_COUNT" >> reports/security-summary.txt
+      echo "" >> reports/security-summary.txt
+      echo "Severity breakdown:" >> reports/security-summary.txt
+      echo "  🔴 Critical: $CRITICAL" >> reports/security-summary.txt
+      echo "  🟠 High: $HIGH" >> reports/security-summary.txt
+      echo "  🟡 Medium: $MEDIUM" >> reports/security-summary.txt
+      echo "  🔵 Low: $LOW" >> reports/security-summary.txt
+      echo "  ⚪ Info: $INFO" >> reports/security-summary.txt
+      echo "" >> reports/security-summary.txt
+      echo "For detailed reports, check the Security tab in GitLab." >> reports/security-summary.txt
+      echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━" >> reports/security-summary.txt
+
+      # Generate JSON summary for better programmatic access
+      {
+        echo '{'
+        echo '  "scan_date": "'$(date -u +"%Y-%m-%dT%H:%M:%SZ")'",'
+        echo '  "summary": {'
+        echo '    "total_scans": '$REPORTS_COUNT','
+        echo '    "total_vulnerabilities": '$VULNS_COUNT','
+        echo '    "severity": {'
+        echo '      "critical": '$CRITICAL','
+        echo '      "high": '$HIGH','
+        echo '      "medium": '$MEDIUM','
+        echo '      "low": '$LOW','
+        echo '      "info": '$INFO
+        echo '    }'
+        echo '  },'
+        echo '  "build_info": {'
+        echo '    "project": "'$CI_PROJECT_NAME'",'
+        echo '    "branch": "'$CI_COMMIT_REF_NAME'",'
+        echo '    "commit": "'$CI_COMMIT_SHA'"'
+        echo '  }'
+        echo '}'
+      } > reports/security-summary.json
+
+      # Generate markdown report for GitLab MR comments
+      {
+        echo '### Security Scan Results'
+        echo ''
+        echo '| Severity | Count |'
+        echo '|----------|-------|'
+        echo "| 🔴 Critical | $CRITICAL |"
+        echo "| 🟠 High | $HIGH |"
+        echo "| 🟡 Medium | $MEDIUM |"
+        echo "| 🔵 Low | $LOW |"
+        echo "| ⚪ Info | $INFO |"
+        echo ''
+        echo "**Total vulnerabilities:** $VULNS_COUNT across $REPORTS_COUNT security scans"
+        echo ''
+        echo '> For detailed reports, check the Security tab in GitLab.'
+      } > reports/security-summary.md
+
+      # Display summary in job log
+      cat reports/security-summary.txt
+
+      # Comment on MR if this is a merge request
+      if [ "$CI_PIPELINE_SOURCE" = "merge_request_event" ] && [ "$VULNS_COUNT" -gt 0 ]; then
+        echo "Posting security summary to merge request..."
+        curl --request POST \
+          --header "PRIVATE-TOKEN: $GITLAB_API_TOKEN" \
+          --data-urlencode "body=$(cat reports/security-summary.md)" \
+          "$CI_API_V4_URL/projects/$CI_PROJECT_ID/merge_requests/$CI_MERGE_REQUEST_IID/notes" || true
+      fi
+  artifacts:
+    paths:
+      - reports/security-summary.txt
+      - reports/security-summary.json
+      - reports/security-summary.md
+    expire_in: 1 week
+    when: always
+  rules:
+    - if: '$CI_PIPELINE_SOURCE == "merge_request_event"'
+      when: always
+    - if: "$CI_COMMIT_BRANCH =~ /^(main|development)$/"
+      when: always
+    - when: never
+  allow_failure: true
+
+# Create a scheduled security scan
+scheduled_security_scan:
+  stage: security
+  needs: []
+  image: alpine:latest
+  before_script:
+    - apk add --no-cache git curl
+  script:
+    - |
+      echo "🔍 Running scheduled security scan..."
+      echo "This job will trigger the security scanning pipeline for regular monitoring."
+
+      # Add any specific security checks that should run on a schedule
+      # These can be more thorough than the ones that run on every commit
+  rules:
+    - if: '$CI_PIPELINE_SOURCE == "schedule"'
+      when: always
+    - when: never
+
+deploy_development:
+  stage: deploy
+  needs:
+    - job: code_check
+      artifacts: false
+    - job: testing
+      artifacts: false
+  allow_failure: false
+  tags:
+    - energeek_deploy_development
+  script:
+    - |
+      echo "🚀 Starting deployment to energeek demo server..."
+      echo "👤 Deploying as user: $(whoami)"
+
+      # Record the start time
+      DEPLOY_START_TIME=$(date +%s)
+
+      # Navigate to application directory
+      APP_DIR="/iniweb-mount/demo82/html/template-laravel-vue-energeek"
+      echo "📁 Navigating to application directory: $APP_DIR"
+      cd $APP_DIR || { echo "❌ Failed to change directory to $APP_DIR"; exit 1; }
+
+      # Set up Node.js environment
+      echo "📦 Checking and setting Node.js and npm versions..."
+      export NVM_DIR="$HOME/.nvm"
+      if [ -s "$NVM_DIR/nvm.sh" ]; then
+        . "$NVM_DIR/nvm.sh"  # Load NVM
+        nvm use 20 || nvm install 20
+        echo "✅ Using Node.js $(node -v) and NPM $(npm -v)"
+      else
+        echo "❌ NVM not found at $NVM_DIR"
+        exit 1
+      fi
+
+      # Update codebase
+      CURRENT_TIME=$(date '+%Y-%m-%d %H:%M:%S')
+      echo "🕒 Deployment started at $CURRENT_TIME"
+      echo "🔄 Updating application code..."
+
+      git fetch --all || { echo "❌ Failed to fetch updates"; exit 1; }
+      git reset --hard origin/development || { echo "❌ Failed to reset state"; exit 1; }
+      git checkout development || { echo "❌ Failed to checkout development branch"; exit 1; }
+
+      CURRENT_BRANCH=$(git rev-parse --abbrev-ref HEAD)
+      if [ "$CURRENT_BRANCH" != "development" ]; then
+        echo "❌ Not on development branch after checkout (current branch: $CURRENT_BRANCH)"
+        exit 1
+      fi
+
+      CURRENT_COMMIT=$(git rev-parse HEAD)
+      git pull origin development || { echo "❌ Failed to pull updates"; exit 1; }
+      NEW_COMMIT=$(git rev-parse HEAD)
+
+      if [ "$CURRENT_COMMIT" = "$NEW_COMMIT" ]; then
+        echo "ℹ️ No new changes to deploy"
+      else
+        echo "📝 Deploying changes from ${CURRENT_COMMIT:0:7} to ${NEW_COMMIT:0:7}"
+        echo "📋 Changes included in this demo deployment:"
+        git log --oneline ${CURRENT_COMMIT}..${NEW_COMMIT}
+        echo "----------------------------------------"
+      fi
+
+      echo "📜 Recent commits:"
+      git log -5 --oneline
+
+      echo "✅ Code update completed"
+
+      # Install Composer dependencies
+      echo "📚 Installing Composer dependencies..."
+      /usr/bin/php8.2 /usr/local/bin/composer install --no-interaction || { echo "❌ Composer install failed"; exit 1; }
+      /usr/bin/php8.2 /usr/local/bin/composer dump-autoload --no-interaction || { echo "❌ Composer dump-autoload failed"; exit 1; }
+
+      # Install NPM dependencies
+      echo "📦 Installing npm dependencies and building assets..."
+      npm cache clean --force
+      echo "Installing npm dependencies..."
+      if ! npm ci --no-audit; then
+        echo "❌ npm ci failed."
+        npm ls --depth=0
+        exit 1
+      fi
+
+      echo "🏗️ Building assets..."
+      if ! npm run build; then
+        echo "❌ npm run build failed."
+        exit 1
+      fi
+
+      # Set ownership and permissions
+      echo "🔧 Setting correct ownership and permissions..."
+      sudo find storage bootstrap/cache -type f -not -name '.gitignore' -exec chmod 775 {} + || { echo "❌ Failed to set permissions for files"; exit 1; }
+      sudo find storage bootstrap/cache -type d -exec chmod 775 {} + || { echo "❌ Failed to set permissions for directories"; exit 1; }
+      sudo chown -R www-data:www-data storage bootstrap/cache || { echo "❌ Failed to set ownership for storage and bootstrap/cache"; exit 1; }
+
+      echo "👤 Setting ownership for other directories..."
+      sudo find . -path ./storage -prune -o -path ./bootstrap/cache -prune -o -exec chown ubuntu:www-data {} + || { echo "❌ Failed to set ownership for other directories"; exit 1; }
+
+      echo "🔍 Final permission check..."
+      sudo find storage bootstrap/cache -type f -not -name '.gitignore' -exec chmod 775 {} + || { echo "❌ Final permission check failed for files"; exit 1; }
+      sudo find storage bootstrap/cache -type d -exec chmod 775 {} + || { echo "❌ Final permission check failed for directories"; exit 1; }
+      sudo chown -R www-data:www-data storage bootstrap/cache || { echo "❌ Final ownership check failed"; exit 1; }
+      echo "✅ Permissions set successfully!"
+
+      # Clear Laravel application
+      echo "⚡ Clearing Laravel application..."
+      php8.2 artisan optimize:clear
+      php8.2 artisan cache:clear
+      php8.2 artisan config:clear
+      php8.2 artisan route:clear
+      php8.2 artisan view:clear
+
+      # Cache Laravel application
+      echo "⚡ Caching Laravel application..."
+      php8.2 artisan config:cache
+      php8.2 artisan route:cache
+      php8.2 artisan view:cache
+      php8.2 artisan event:cache
+
+      # Put application into maintenance mode and clear cache
+      echo "🛠️ Preparing for database migration..."
+      php8.2 artisan down || { echo "❌ Failed to put application into maintenance mode"; exit 1; }
+      echo "✅ Application is in maintenance mode."
+
+      # Run migration with rollback capability
+      echo "🔄 Running database migrations..."
+      if php8.2 artisan migrate --force --no-interaction; then
+          echo "✅ Migration successful"
+
+          # Clear Laravel application
+          echo "⚡ Clearing Laravel application..."
+          php8.2 artisan optimize:clear
+          php8.2 artisan cache:clear
+          php8.2 artisan config:clear
+          php8.2 artisan route:clear
+          php8.2 artisan view:clear
+
+          # Cache Laravel application
+          echo "⚡ Caching Laravel application..."
+          php8.2 artisan config:cache
+          php8.2 artisan route:cache
+          php8.2 artisan view:cache
+          php8.2 artisan event:cache
+          echo "✅ Laravel application optimized successfully"
+      else
+          echo "❌ Migration failed - rolling back"
+          if php8.2 artisan migrate:rollback --no-interaction; then
+              echo "✅ Rollback successful"
+          else
+              echo "❌ Rollback failed! Manual intervention required."
+              php8.2 artisan up || echo "⚠️ Failed to bring application back online"
+              exit 1
+          fi
+          php8.2 artisan up || echo "⚠️ Failed to bring application back online"
+          exit 1
+      fi
+
+      # Bring application back online
+      php8.2 artisan up || { echo "⚠️ Failed to bring application back online"; exit 1; }
+      echo "🚀 Application is back online"
+
+      # Set ownership and permissions
+      echo "🔧 Setting correct ownership and permissions..."
+      sudo find storage bootstrap/cache -type f -not -name '.gitignore' -exec chmod 775 {} + || { echo "❌ Failed to set permissions for files"; exit 1; }
+      sudo find storage bootstrap/cache -type d -exec chmod 775 {} + || { echo "❌ Failed to set permissions for directories"; exit 1; }
+      sudo chown -R www-data:www-data storage bootstrap/cache || { echo "❌ Failed to set ownership for storage and bootstrap/cache"; exit 1; }
+
+      echo "👤 Setting ownership for other directories..."
+      sudo find . -path ./storage -prune -o -path ./bootstrap/cache -prune -o -exec chown ubuntu:www-data {} + || { echo "❌ Failed to set ownership for other directories"; exit 1; }
+
+      echo "🔍 Final permission check..."
+      sudo find storage bootstrap/cache -type f -not -name '.gitignore' -exec chmod 775 {} + || { echo "❌ Final permission check failed for files"; exit 1; }
+      sudo find storage bootstrap/cache -type d -exec chmod 775 {} + || { echo "❌ Final permission check failed for directories"; exit 1; }
+      sudo chown -R www-data:www-data storage bootstrap/cache || { echo "❌ Final ownership check failed"; exit 1; }
+      echo "✅ Permissions set successfully!"
+
+      # Record the end time
+      DEPLOY_END_TIME=$(date +%s)
+      DEPLOY_DURATION=$((DEPLOY_END_TIME - DEPLOY_START_TIME))
+
+      # Format duration as HH:MM:SS
+      DURATION_HOURS=$((DEPLOY_DURATION / 3600))
+      DURATION_MINUTES=$(( (DEPLOY_DURATION % 3600) / 60 ))
+      DURATION_SECONDS=$((DEPLOY_DURATION % 60))
+      FORMATTED_DURATION=$(printf "%02d:%02d:%02d" $DURATION_HOURS $DURATION_MINUTES $DURATION_SECONDS)
+
+      # Deployment completion notification
+      DEPLOY_TIME=$(date '+%Y-%m-%d %H:%M:%S')
+      COMMIT_HASH=$(git rev-parse --short HEAD)
+      COMMIT_MSG=$(git log -1 --pretty=%B)
+      BRANCH_NAME=$(git rev-parse --abbrev-ref HEAD)
+
+      echo "✅ Deployment to energeek demo server completed successfully!"
+      echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+      echo "🌍 Environment: ${APP_ENV:-unknown}"
+      echo "🕒 Completed at: $DEPLOY_TIME"
+      echo "⏱️ Duration: $FORMATTED_DURATION"
+      echo "🔖 Branch: $BRANCH_NAME"
+      echo "📝 Commit: $COMMIT_HASH"
+      echo "💬 Message: $COMMIT_MSG"
+      echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+  only:
+    - development
+  environment:
+    name: development
+    url: https://demo82.energeek.co.id/template-laravel-vue-energeek

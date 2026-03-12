@@ -1,0 +1,10 @@
+export { default as CloseIcon } from './close-icon.vue';
+export { default as EditIcon } from './edit-icon.vue';
+export { default as ResetPasswordIcon } from './reset-password-icon.vue';
+export { default as TrashIcon } from './trash-icon.vue';
+export { default as GalleryTrashIcon } from './gallery-trash-icon.vue';
+export { default as ArrowBackIcon } from './arrow-back-icon.vue';
+export { default as SaveIcon } from './save-icon.vue';
+export { default as DropzoneIcon } from './dropzone-icon.vue';
+export { default as RectangleIcon } from './rectangle-icon.vue';
+export { default as LogoIcon } from './logo-icon.vue';

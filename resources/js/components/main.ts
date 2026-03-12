@@ -1,0 +1,11 @@
+export { default as FilePreview } from '@src/components/file-preview/Index.vue';
+export { default as FileUpload } from '@src/components/file-upload/Index.vue';
+export { default as Pagination } from '@src/components/pagination/Index.vue';
+export { default as DataTable } from '@src/components/datatable/Index.vue';
+export { default as SelectMultiple } from '@src/components/select-multiple/Index.vue';
+export { default as SelectSingle } from '@src/components/select-single/Index.vue';
+export { default as Loader } from '@src/components/loader/Index.vue';
+export { default as CustomModal } from '@src/components/custom-modal/Index.vue';
+export { default as ModalBody } from '@src/components/custom-modal/ModalBody.vue';
+export { default as ModalFooter } from '@src/components/custom-modal/ModalFooter.vue';
+export { default as ErrorFormValidation} from "@src/components/error-form-validation/Index.vue";

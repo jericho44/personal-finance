@@ -1,0 +1,519 @@
+##########################################################
+# Remember to commit these files (NOT in .gitignore):
+#
+# Backend:
+# - composer.lock
+# - .env.example
+#
+# Frontend:
+# - package-lock.json / yarn.lock / pnpm-lock.yaml / bun.lockb
+# - tsconfig.json / tsconfig.*.json
+# - vite.config.ts / webpack.config.js
+# - postcss.config.js / tailwind.config.js
+#
+# Project Config:
+# - .gitignore
+# - .editorconfig
+# - .prettierrc / .eslintrc / .stylelintrc
+# - .browserslistrc
+# - .nvmrc / .node-version
+#
+# CI/CD:
+# - .gitlab-ci.yml / .github/workflows/
+# - Dockerfile / docker-compose.yml
+##########################################################
+
+#==================== IDEs & Editors ====================
+# JetBrains (PHPStorm, WebStorm, IntelliJ)
+.idea/
+*.iml
+*.ipr
+*.iws
+out/
+
+# Visual Studio Code
+.vscode/
+*.code-workspace
+.history/
+
+# Cursor IDE
+.cursor/
+
+# Zed Editor
+.zed/
+
+# Sublime Text
+*.sublime-project
+*.sublime-workspace
+
+# Vim/Neovim
+[._]*.sw[a-p]
+[._]sw[a-p]
+.netrwhist
+*~
+tags
+Session.vim
+
+# Emacs
+*~
+\#*\#
+*.elc
+auto-save-list
+tramp
+.\#*
+
+# Nova
+.nova/
+
+#==================== OS Files ==========================
+# macOS
+.DS_Store
+.AppleDouble
+.LSOverride
+._*
+Icon
+.Spotlight-V100
+.Trashes
+
+# Windows
+Thumbs.db
+Thumbs.db:encryptable
+ehthumbs.db
+ehthumbs_vista.db
+Desktop.ini
+$RECYCLE.BIN/
+*.lnk
+
+# Linux
+.directory
+.Trash-*
+.nfs*
+
+#==================== Laravel Core ======================
+/vendor/
+/node_modules/
+/public/hot
+/public/storage
+/public/build/
+/storage/*.key
+.phpunit.result.cache
+.phpunit.cache
+auth.json
+npm-debug.log
+yarn-error.log
+
+# Laravel IDE Helper
+_ide_helper*.php
+.phpstorm.meta.php
+
+# Laravel Tools
+horizon.log
+telescope.sqlite
+/storage/debugbar/
+
+# Laravel Sail & Docker
+.env.sail
+/docker/volumes/
+supervisord.log
+supervisord.pid
+
+# Laravel Dusk
+/tests/Browser/screenshots/
+/tests/Browser/console/
+
+# Laravel Octane
+rr
+.rr.yaml
+
+#==================== Laravel + Frontend Integration =====
+# Inertia.js SSR
+/bootstrap/ssr/
+/storage/ssr/
+ssr-manifest.json
+
+# Laravel Mix
+/public/mix-manifest.json
+mix-stats.json
+
+# Laravel Vite
+/public/hot
+/public/build/
+vite-manifest.json
+
+# Ziggy Routes
+/resources/js/ziggy.js
+/public/js/ziggy.js
+
+#==================== Frontend (React/Vue + TypeScript) ==
+# Dependencies
+node_modules/
+.pnp/
+.pnp.js
+.yarn/install-state.gz
+
+# TypeScript
+*.tsbuildinfo
+.tscache/
+tsconfig.tsbuildinfo
+*.js.map
+*.d.ts.map
+dist/
+lib/
+typings/
+
+# TypeScript error files
+tsconfig.build.tsbuildinfo
+*.tsbuildinfo
+.rts2_cache*/
+
+# React Specific
+.next/
+out/
+build/
+*.jsx.map
+
+# React Native (if used)
+*.jsbundle
+.expo/
+.expo-shared/
+
+# Vue Specific
+.nuxt/
+dist/
+.vue-analyzer/
+*.vue.js
+*.vue.d.ts
+.vuepress/dist/
+.serverless/
+
+# Vite
+dist/
+dist-ssr/
+*.local
+.vite/
+vite.config.js.timestamp-*
+vite.config.ts.timestamp-*
+
+# Webpack
+.webpack/
+webpack-stats.json
+webpack-assets.json
+
+# Parcel
+.cache/
+.parcel-cache/
+
+# Rollup
+.rollup.cache/
+
+# Testing - Frontend
+coverage/
+.nyc_output/
+lib-cov/
+*.lcov
+.coverage/
+.jest/
+jest-stare/
+test-results/
+playwright-report/
+playwright/.cache/
+e2e/videos/
+e2e/screenshots/
+cypress/videos/
+cypress/screenshots/
+cypress/downloads/
+
+# Storybook
+storybook-static/
+.storybook-out/
+.histoire/dist/
+
+# Source maps
+*.map
+*.js.map
+*.css.map
+
+# Bundle analysis
+/bundle-report.html
+/stats.json
+.webpack-bundle-analyzer/
+
+# PWA
+/public/service-worker.js
+/public/workbox-*.js
+/public/manifest.json
+/public/worker-*.js
+
+# Frontend Environment
+.env.development.local
+.env.test.local
+.env.production.local
+
+# Design tokens / Style artifacts
+/tokens/
+.design-tokens/
+*.sketch
+*.fig
+
+# Component libraries build
+/lib/
+/es/
+/esm/
+/umd/
+
+# Linting and formatting cache
+.eslintcache
+.stylelintcache
+.prettiercache
+*.tslint.cache
+
+# Module federation
+.module-federation/
+module-federation.config.json
+
+# Monorepo tools
+.nx/
+.turbo/
+.rush/
+
+#==================== Storage (Git keep folders) ========
+/storage/app/*
+!/storage/app/public/
+!/storage/app/.gitignore
+/storage/framework/cache/data/*
+!/storage/framework/cache/data/.gitignore
+/storage/framework/sessions/*
+!/storage/framework/sessions/.gitignore
+/storage/framework/testing/*
+!/storage/framework/testing/.gitignore
+/storage/framework/views/*
+!/storage/framework/views/.gitignore
+/storage/logs/*
+!/storage/logs/.gitignore
+
+#==================== Environment & Config ===============
+.env
+.env.*
+!.env.example
+.env.backup
+.env.production
+.env.staging
+.env.testing
+!.env.testing.example
+.env.local
+
+# Local development
+Homestead.yaml
+Homestead.json
+Vagrantfile
+.vagrant/
+
+#==================== Build & CI/CD =====================
+/builds/
+/artifacts/
+/coverage/
+.scannerwork/
+.gitlab-ci-local/
+.cache/
+
+# Backend build
+/bootstrap/cache/packages.php
+/bootstrap/cache/services.php
+
+# Frontend build coordination
+/.webpack/
+/.vite/
+/.parcel-cache/
+.vercel/
+.netlify/
+
+#==================== Security (CRITICAL) ================
+# Private keys and certificates
+*.key
+*.pem
+*.crt
+*.cer
+*.p12
+*.pfx
+/certs/
+/certificates/
+/ssl/
+
+# SSH keys
+id_rsa*
+id_dsa*
+id_ecdsa*
+id_ed25519*
+known_hosts
+
+# Secrets
+.vault_pass
+ansible-vault.txt
+secrets.yml
+secrets.yaml
+*.secret
+
+# Firebase
+firebase.json
+.firebase/
+.firebaserc
+service-account*.json
+
+#==================== DevOps & Infrastructure ===========
+# Kubernetes
+*.kubeconfig
+kubeconfig
+kubeconfig.*
+/charts/*/charts/
+/charts/*/requirements.lock
+
+# Terraform
+*.tfstate
+*.tfstate.*
+.terraform/
+.terraform.lock.hcl
+*.tfvars
+!terraform.tfvars.example
+
+# Ansible
+*.retry
+/ansible/inventory/*
+!/ansible/inventory/example
+
+# Docker
+docker-compose.override.yml
+.dockerignore.local
+
+#==================== Databases =========================
+*.sqlite
+*.sqlite-journal
+*.db
+/database/*.sqlite
+!/database/database.sqlite.example
+
+#==================== Monitoring & Logging ==============
+*.log
+*.log.*
+logs/
+/grafana/sessions/
+/prometheus/data/
+
+#==================== Temporary Files ===================
+*.tmp
+*.temp
+*.cache
+*.bak
+*.backup
+*.swp
+*.swo
+.tmp/
+.temp/
+tmp/
+temp/
+
+#==================== Package Managers ==================
+# PHP
+composer.phar
+# Note: composer.lock should be committed
+
+# Node/Yarn/PNPM/Bun
+.pnp
+.pnp.js
+.yarn/*
+!.yarn/patches
+!.yarn/releases
+!.yarn/plugins
+!.yarn/sdks
+!.yarn/versions
+.pnpm-store/
+pnpm-debug.log*
+lerna-debug.log*
+.npm/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+# Note: package-lock.json, yarn.lock, pnpm-lock.yaml, bun.lockb should be committed
+
+#==================== Testing ===========================
+# PHPUnit / Pest
+phpunit.xml
+.phpunit.result.cache
+.phpunit.cache/
+.pest/
+
+# Jest / Vitest
+coverage/
+.coverage/
+*.cover
+*.lcov
+.nyc_output/
+jest-junit.xml
+
+# Cypress
+cypress/videos/
+cypress/screenshots/
+cypress/downloads/
+cypress.env.json
+
+# Playwright
+playwright-report/
+playwright/.cache/
+test-results/
+
+# Python (for some testing tools)
+.hypothesis/
+.pytest_cache/
+
+#==================== Documentation =====================
+/docs/_build/
+/docs/.doctrees/
+/storage/api-docs/
+/typedoc/
+/jsdoc/
+.docusaurus/
+
+#==================== Internationalization ==============
+/resources/lang/en.json
+/lang/*.json
+!/lang/.gitkeep
+/public/lang/
+/public/i18n/
+*.po.backup
+*.pot.backup
+
+#==================== Misc ==============================
+# PHP CS Fixer
+.php_cs.cache
+.php-cs-fixer.cache
+
+# Frontend linting
+.stylelintcache
+.eslintcache
+.prettiercache
+.prettiercache.json
+
+# Biome (alternative to ESLint/Prettier)
+.biome/
+
+# Lefthook / Husky git hooks
+.husky/_/
+lefthook-local.yml
+
+# Changesets
+.changeset/*.md
+!.changeset/README.md
+
+# Size limit
+size-limit-report.json
+
+# Bundle analysis
+bundle-stats.html
+webpack-bundle-analyzer-report.html
+
+# Development certificates
+*.pem
+!.env.example
+
+# Patch files (for emergency fixes)
+*.patch
+!patches/*.patch

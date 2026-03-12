@@ -1,0 +1,132 @@
+version: '3.8'
+
+services:
+  app:
+    build:
+      context: .
+      target: app
+    image: personal-finance-app
+    container_name: personal_finance_app
+    restart: unless-stopped
+    volumes:
+      - .:/var/www/html
+      - ./docker/php/php.ini:/usr/local/etc/php/conf.d/local.ini
+    depends_on:
+      - postgresql
+      - redis
+    networks:
+      - finance-network
+    healthcheck:
+      test: ["CMD", "php-fpm", "-t"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+
+  nginx:
+    build:
+      context: .
+      target: nginx
+    image: personal-finance-nginx
+    container_name: personal_finance_nginx
+    restart: unless-stopped
+    ports:
+      - "8000:80"
+    volumes:
+      - .:/var/www/html
+      - ./docker/nginx/default.conf:/etc/nginx/conf.d/default.conf
+    depends_on:
+      - app
+    networks:
+      - finance-network
+
+  node:
+    build:
+      context: .
+      target: node
+    image: personal-finance-node
+    container_name: personal_finance_node
+    restart: unless-stopped
+    volumes:
+      - .:/var/www/html
+    # In development, use `npm run dev`. In production, Vite builds are mounted directly via volumes.
+    command: npm run dev
+    ports:
+      - "5173:5173"
+    networks:
+      - finance-network
+
+  postgresql:
+    image: postgres:18
+    container_name: personal_finance_db
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: ${DB_DATABASE:-personal_finance}
+      POSTGRES_USER: ${DB_USERNAME:-postgres}
+      POSTGRES_PASSWORD: ${DB_PASSWORD:-secret}
+    volumes:
+      - finance-db-data:/var/lib/postgresql
+    networks:
+      - finance-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${DB_USERNAME:-postgres} -d ${DB_DATABASE:-personal_finance}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  redis:
+    image: redis:alpine
+    container_name: personal_finance_redis
+    restart: unless-stopped
+    volumes:
+      - finance-redis-data:/data
+    networks:
+      - finance-network
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+
+  queue-worker:
+    build:
+      context: .
+      target: app
+    image: personal-finance-queue
+    container_name: personal_finance_queue
+    restart: unless-stopped
+    command: php artisan queue:work --sleep=3 --tries=3
+    volumes:
+      - .:/var/www/html
+      - ./docker/php/php.ini:/usr/local/etc/php/conf.d/local.ini
+    depends_on:
+      - app
+      - postgresql
+      - redis
+    networks:
+      - finance-network
+
+  scheduler:
+    build:
+      context: .
+      target: app
+    image: personal-finance-scheduler
+    container_name: personal_finance_scheduler
+    restart: unless-stopped
+    command: php artisan schedule:work
+    volumes:
+      - .:/var/www/html
+      - ./docker/php/php.ini:/usr/local/etc/php/conf.d/local.ini
+    depends_on:
+      - app
+      - postgresql
+      - redis
+    networks:
+      - finance-network
+
+networks:
+  finance-network:
+    driver: bridge
+
+volumes:
+  finance-db-data:
+  finance-redis-data:
