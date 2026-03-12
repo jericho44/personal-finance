@@ -30,7 +30,7 @@
                                             <tr v-if="categories.length === 0">
                                                 <td colspan="5" class="text-center">Belum ada data kategori.</td>
                                             </tr>
-                                            <tr v-for="(category, index) in categories" :key="category.id">
+                                            <tr v-for="(category, index) in categories" :key="category.id_hash">
                                                 <td class="text-center">{{ index + 1 }}</td>
                                                 <td>{{ category.name }}</td>
                                                 <td>
@@ -50,7 +50,7 @@
                                                             <i class="fa fa-pen" />
                                                         </span>
                                                     </button>
-                                                    <button class="btn btn-icon btn-bg-light btn-active-color-danger btn-sm" @click="confirmDelete(category.id)">
+                                                    <button class="btn btn-icon btn-bg-light btn-active-color-danger btn-sm" @click="confirmDelete(category.id_hash)">
                                                         <span class="svg-icon svg-icon-danger">
                                                             <i class="fa fa-trash" />
                                                         </span>
@@ -136,7 +136,7 @@ const categories = ref<ICategory[]>([]);
 const flag = ref<'insert' | 'edit'>('insert');
 
 const single = reactive({
-    id: '' as string,
+    id_hash: '' as string,
     name: '' as string,
     type: 'expense' as 'income' | 'expense',
     color: '#3498db' as string,
@@ -162,8 +162,6 @@ async function fetchCategories() {
         loaderShow();
         const res = await categoryStore.getAll();
         categories.value = res.data.data;
-        console.log(categories);
-
     } catch (error) {
         axiosHandleError(error);
     } finally {
@@ -179,7 +177,7 @@ function showModalAdd() {
 function edit(category: ICategory) {
     reset();
     flag.value = 'edit';
-    single.id = category.id;
+    single.id_hash = category.id_hash;
     single.name = category.name;
     single.type = category.type;
     single.color = category.color || '#3498db';
@@ -204,7 +202,7 @@ async function saveData() {
         if (flag.value === 'insert') {
             res = await categoryStore.create(payload);
         } else {
-            res = await categoryStore.update(single.id, payload);
+            res = await categoryStore.update(single.id_hash, payload);
         }
 
         modalForm.value?.hide();
@@ -222,7 +220,7 @@ async function saveData() {
     }
 }
 
-async function confirmDelete(id: string) {
+async function confirmDelete(id_hash: string) {
     Swal.fire({
         title: 'Hapus Kategori?',
         text: "Kategori ini akan dihapus secara permanen.",
@@ -235,7 +233,7 @@ async function confirmDelete(id: string) {
         if (result.isConfirmed) {
             try {
                 loaderShow();
-                await categoryStore.destroy(id);
+                await categoryStore.destroy(id_hash);
                 toast.success('Kategori berhasil dihapus');
                 fetchCategories();
             } catch (error) {
@@ -250,7 +248,7 @@ async function confirmDelete(id: string) {
 function reset() {
     v$.value.$reset();
     flag.value = 'insert';
-    single.id = '';
+    single.id_hash = '';
     single.name = '';
     single.type = 'expense';
     single.color = '#3498db';

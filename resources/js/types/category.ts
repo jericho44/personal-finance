@@ -1,5 +1,5 @@
 export interface ICategory {
-    id: string;
+    id_hash: string;
     name: string;
     type: 'income' | 'expense';
     color: string | null;

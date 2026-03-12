@@ -2,10 +2,7 @@
 
 namespace App\Http\Controllers\Api;
 
-use App\Helpers\ResponseFormatter;
 use App\Http\Controllers\Controller;
-use App\Http\Resources\CategoryResource;
-use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\Request;
 
 class CategoryController extends Controller
@@ -19,33 +16,8 @@ class CategoryController extends Controller
 
     public function index(Request $request)
     {
-        $categories = $this->categoryRepository->getAll(
-            select: [],
-            withRelations: [],
-            where: function (Builder $query) use ($request) {
-                $query->where('user_id', $request->user()->id);
-            },
-            search: $request->search,
-            sortOption: [
-                'orderCol' => $request->sort_by,
-                'orderDir' => $request->order_by,
-            ],
-            paginateOption: [
-                'method' => 'paginate',
-                'length' => $request->limit,
-                'page' => $request->page,
-            ],
-            reformat: function ($model) {
-                return tap($model, function ($paginate) {
-                    return $paginate->getCollection()
-                        ->transform(function ($row) {
-                            return new CategoryResource($row);
-                        });
-                });
-            }
-        );
-
-        return ResponseFormatter::success($categories, 'Data berhasil ditampilkan');
+        $categories = $this->categoryRepository->getAll($request->user()->id);
+        return response()->json(['success' => true, 'data' => $categories]);
     }
 
     public function store(Request $request)
