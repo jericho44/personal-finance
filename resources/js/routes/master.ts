@@ -25,7 +25,7 @@ const routes = [
             //         specificRole: [environmentStore.data.roleSuperAdmin, environmentStore.data.roleAdmin],
             //     }
             // },
-             {
+            {
                 path: 'category',
                 name: 'a-m-category',
                 component: MasterCategory,

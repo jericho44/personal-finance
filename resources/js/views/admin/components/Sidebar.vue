@@ -65,15 +65,16 @@
                                 </span>
                                 <span class="menu-title">Dashboard</span>
                             </router-link>
+                            <!-- DATA MASTER SECTION -->
                             <div class="menu-item py-1"
                                 v-if="isSpecificHaveAccessMenu([environmentStore.data.roleSuperAdmin, environmentStore.data.roleAdmin])">
                                 <div class="menu-content pb-2">
-                                    <span class="menu-section text-muted text-uppercase fs-8 ls-1">Transaksi</span>
+                                    <span class="menu-section text-muted text-uppercase fs-8 ls-1">Data Master</span>
                                 </div>
                             </div>
                             <div v-if="isSpecificHaveAccessMenu([environmentStore.data.roleSuperAdmin, environmentStore.data.roleAdmin])"
                                 data-kt-menu-trigger="click"
-                                :class="`menu-item menu-accordion ${pageActive(['a-m-user', 'a-m-category']) == 'active' ? 'show' : ''}`">
+                                :class="`menu-item menu-accordion ${pageActive(['a-m-user', 'a-m-category', 'a-m-account']) == 'active' ? 'show' : ''}`">
                                 <span class="menu-link toggle-accordion mx-2">
                                     <span class="menu-icon">
                                         <svg width="24" height="24" viewBox="0 0 24 24" fill="none"
@@ -90,15 +91,6 @@
                                     <span class="menu-arrow" />
                                 </span>
                                 <div class="menu-sub menu-sub-accordion">
-                                    <!-- <div class="menu-item">
-                                        <a :class="`menu-link btn mx-5 btn-sm ${pageActive('a-m-kategori-berita')}`"
-                                            @click="$router.push({ name: 'a-m-kategori-berita' })" href="javascript:;">
-                                            <span class="menu-bullet">
-                                                <span class="bullet bullet-dot" />
-                                            </span>
-                                            <span class="menu-title">Kategori Event</span>
-                                        </a>
-                                    </div> -->
                                      <div class="menu-item">
                                         <a :class="`menu-link btn mx-5 btn-sm ${pageActive('a-m-category')}`"
                                             @click="$router.push({ name: 'a-m-category' })" href="javascript:;">
@@ -117,17 +109,28 @@
                                             <span class="menu-title">User</span>
                                         </a>
                                     </div>
+                                     <div class="menu-item">
+                                        <a :class="`menu-link btn mx-5 btn-sm ${pageActive('a-m-account')}`"
+                                            @click="$router.push({ name: 'a-m-account' })" href="javascript:;">
+                                            <span class="menu-bullet">
+                                                <span class="bullet bullet-dot" />
+                                            </span>
+                                            <span class="menu-title">Akun</span>
+                                        </a>
+                                    </div>
                                 </div>
                             </div>
+
+                            <!-- TRANSAKSI SECTION -->
                             <div class="menu-item py-1"
                                 v-if="isSpecificHaveAccessMenu([environmentStore.data.roleSuperAdmin, environmentStore.data.roleAdmin])">
                                 <div class="menu-content pb-2">
-                                    <span class="menu-section text-muted text-uppercase fs-8 ls-1">Data Master</span>
+                                    <span class="menu-section text-muted text-uppercase fs-8 ls-1">Keuangan</span>
                                 </div>
                             </div>
                             <div v-if="isSpecificHaveAccessMenu([environmentStore.data.roleSuperAdmin, environmentStore.data.roleAdmin])"
                                 data-kt-menu-trigger="click"
-                                :class="`menu-item menu-accordion ${pageActive(['a-m-transition', 'a-m-budget', 'a-m-account', 'a-m-transaction', 'a-m-bill', 'a-m-goal', 'a-m-report']) == 'active' ? 'show' : ''}`">
+                                :class="`menu-item menu-accordion ${pageActive(['a-m-transaction', 'a-m-budget', 'a-m-bill', 'a-m-goal', 'a-m-report']) == 'active' ? 'show' : ''}`">
                                 <span class="menu-link toggle-accordion mx-2">
                                     <span class="menu-icon">
                                         <svg width="24" height="24" viewBox="0 0 24 24" fill="none"
@@ -140,7 +143,7 @@
                                                 fill="#B5B5C3" />
                                         </svg>
                                     </span>
-                                    <span class="menu-title">Transaksi</span>
+                                    <span class="menu-title">Keuangan</span>
                                     <span class="menu-arrow" />
                                 </span>
                                 <div class="menu-sub menu-sub-accordion">
@@ -164,15 +167,6 @@
                                         </a>
                                     </div>
                                     <div class="menu-item">
-                                        <a :class="`menu-link btn mx-5 btn-sm ${pageActive('a-m-account')}`"
-                                            @click="$router.push({ name: 'a-m-account' })" href="javascript:;">
-                                            <span class="menu-bullet">
-                                                <span class="bullet bullet-dot" />
-                                            </span>
-                                            <span class="menu-title">Akun</span>
-                                        </a>
-                                    </div>
-                                    <div class="menu-item">
                                         <a :class="`menu-link btn mx-5 btn-sm ${pageActive('a-m-bill')}`"
                                             @click="$router.push({ name: 'a-m-bill' })" href="javascript:;">
                                             <span class="menu-bullet">
@@ -190,6 +184,35 @@
                                             <span class="menu-title">Tujuan Keuangan</span>
                                         </a>
                                     </div>
+                                </div>
+                            </div>
+
+                            <!-- REPORT -->
+                            <div class="menu-item py-1"
+                                v-if="isSpecificHaveAccessMenu([environmentStore.data.roleSuperAdmin, environmentStore.data.roleAdmin])">
+                                <div class="menu-content pb-2">
+                                    <span class="menu-section text-muted text-uppercase fs-8 ls-1">Report</span>
+                                </div>
+                            </div>
+                             <div v-if="isSpecificHaveAccessMenu([environmentStore.data.roleSuperAdmin, environmentStore.data.roleAdmin])"
+                                data-kt-menu-trigger="click"
+                                :class="`menu-item menu-accordion ${pageActive(['a-m-report']) == 'active' ? 'show' : ''}`">
+                                <span class="menu-link toggle-accordion mx-2">
+                                    <span class="menu-icon">
+                                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none"
+                                            xmlns="http://www.w3.org/2000/svg">
+                                            <path opacity="0.3"
+                                                d="M4 4H20V20H4V4Z"
+                                                fill="#B5B5C3" />
+                                            <path
+                                                d="M7 7H17V9H7V7ZM7 11H17V13H7V11ZM7 15H13V17H7V15Z"
+                                                fill="#B5B5C3" />
+                                        </svg>
+                                    </span>
+                                    <span class="menu-title">Report</span>
+                                    <span class="menu-arrow" />
+                                </span>
+                                <div class="menu-sub menu-sub-accordion">
                                     <div class="menu-item">
                                         <a :class="`menu-link btn mx-5 btn-sm ${pageActive('a-m-report')}`"
                                             @click="$router.push({ name: 'a-m-report' })" href="javascript:;">

@@ -46,8 +46,8 @@ class ReportController extends Controller
         $transactions = DB::table('transactions')
             ->where('user_id', $request->user()->id)
             ->whereYear('date', $year)
-            ->selectRaw('MONTH(date) as month, type, SUM(amount) as total')
-            ->groupBy('month', 'type')
+            ->selectRaw('EXTRACT(MONTH FROM date) as month, type, SUM(amount) as total')
+            ->groupByRaw('EXTRACT(MONTH FROM date), type')
             ->get();
 
         $monthlyData = [];

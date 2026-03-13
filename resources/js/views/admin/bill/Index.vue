@@ -15,6 +15,23 @@
                                 </button>
                             </div>
                             <div class="card-body pt-5">
+                                <!-- Reminder Bills -->
+                                <div v-if="upcomingBills.length > 0" class="notice d-flex bg-light-warning rounded border-warning border border-dashed p-6 mb-8">
+                                    <div class="d-flex flex-stack flex-grow-1">
+                                        <div class="fw-bold">
+                                            <h4 class="text-gray-900 fw-bolder">Pengingat Tagihan!</h4>
+                                            <div class="fs-6 text-gray-700">
+                                                Terdapat <strong class="text-danger">{{ upcomingBills.length }} tagihan</strong> yang akan jatuh tempo dalam beberapa hari ke depan dan belum dibayar.
+                                            </div>
+                                            <ul class="text-gray-700 mt-2 mb-0">
+                                                <li v-for="b in upcomingBills" :key="b.idHash">
+                                                    {{ b.name }} ({{ formatCurrency(b.amount) }}) - <span class="text-danger">Jatuh tempo: {{ formatDate(b.dueDate) }}</span>
+                                                </li>
+                                            </ul>
+                                        </div>
+                                    </div>
+                                </div>
+                                <!-- End Reminder Bills -->
                                 <div class="table-responsive">
                                     <table class="table align-middle table-row-dashed fs-6 gy-5 mt-5">
                                         <thead>
@@ -157,6 +174,16 @@ const single = reactive({
     is_paid: 'false',
     category_id: '',
     notes: '',
+});
+
+const upcomingBills = computed(() => {
+    const today = dayjs().startOf('day');
+    const nextWeek = today.add(7, 'day');
+    return bills.value.filter(b => {
+        if (b.isPaid) return false;
+        const due = dayjs(b.dueDate).startOf('day');
+        return due.isAfter(today.subtract(1, 'day')) && due.isBefore(nextWeek.add(1, 'day'));
+    });
 });
 
 const rules = computed(() => ({
