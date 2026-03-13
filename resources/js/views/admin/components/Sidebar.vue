@@ -127,7 +127,7 @@
                             </div>
                             <div v-if="isSpecificHaveAccessMenu([environmentStore.data.roleSuperAdmin, environmentStore.data.roleAdmin])"
                                 data-kt-menu-trigger="click"
-                                :class="`menu-item menu-accordion ${pageActive(['a-m-transition', 'a-m-budget', 'a-m-account']) == 'active' ? 'show' : ''}`">
+                                :class="`menu-item menu-accordion ${pageActive(['a-m-transition', 'a-m-budget', 'a-m-account', 'a-m-transaction', 'a-m-bill', 'a-m-goal', 'a-m-report']) == 'active' ? 'show' : ''}`">
                                 <span class="menu-link toggle-accordion mx-2">
                                     <span class="menu-icon">
                                         <svg width="24" height="24" viewBox="0 0 24 24" fill="none"
@@ -170,6 +170,33 @@
                                                 <span class="bullet bullet-dot" />
                                             </span>
                                             <span class="menu-title">Akun</span>
+                                        </a>
+                                    </div>
+                                    <div class="menu-item">
+                                        <a :class="`menu-link btn mx-5 btn-sm ${pageActive('a-m-bill')}`"
+                                            @click="$router.push({ name: 'a-m-bill' })" href="javascript:;">
+                                            <span class="menu-bullet">
+                                                <span class="bullet bullet-dot" />
+                                            </span>
+                                            <span class="menu-title">Tagihan & Langganan</span>
+                                        </a>
+                                    </div>
+                                    <div class="menu-item">
+                                        <a :class="`menu-link btn mx-5 btn-sm ${pageActive('a-m-goal')}`"
+                                            @click="$router.push({ name: 'a-m-goal' })" href="javascript:;">
+                                            <span class="menu-bullet">
+                                                <span class="bullet bullet-dot" />
+                                            </span>
+                                            <span class="menu-title">Tujuan Keuangan</span>
+                                        </a>
+                                    </div>
+                                    <div class="menu-item">
+                                        <a :class="`menu-link btn mx-5 btn-sm ${pageActive('a-m-report')}`"
+                                            @click="$router.push({ name: 'a-m-report' })" href="javascript:;">
+                                            <span class="menu-bullet">
+                                                <span class="bullet bullet-dot" />
+                                            </span>
+                                            <span class="menu-title">Laporan Keuangan</span>
                                         </a>
                                     </div>
                                 </div>

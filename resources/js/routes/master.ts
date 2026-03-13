@@ -65,6 +65,30 @@ const routes = [
                     specificRole: [environmentStore.data.roleSuperAdmin, environmentStore.data.roleAdmin],
                 }
             },
+            {
+                path: 'bill',
+                name: 'a-m-bill',
+                component: () => import('@src/views/admin/bill/Index.vue'),
+                meta: {
+                    specificRole: [environmentStore.data.roleSuperAdmin, environmentStore.data.roleAdmin],
+                }
+            },
+            {
+                path: 'goal',
+                name: 'a-m-goal',
+                component: () => import('@src/views/admin/goal/Index.vue'),
+                meta: {
+                    specificRole: [environmentStore.data.roleSuperAdmin, environmentStore.data.roleAdmin],
+                }
+            },
+            {
+                path: 'report',
+                name: 'a-m-report',
+                component: () => import('@src/views/admin/report/Index.vue'),
+                meta: {
+                    specificRole: [environmentStore.data.roleSuperAdmin, environmentStore.data.roleAdmin],
+                }
+            },
         ]
     }
 ]

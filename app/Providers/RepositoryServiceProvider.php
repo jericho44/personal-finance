@@ -24,6 +24,8 @@ class RepositoryServiceProvider extends ServiceProvider
         $this->app->bind(Interfaces\AccountInterface::class, Repositories\AccountRepository::class);
         $this->app->bind(Interfaces\TransactionInterface::class, Repositories\TransactionRepository::class);
         $this->app->bind(Interfaces\BudgetInterface::class, Repositories\BudgetRepository::class);
+        $this->app->bind(Interfaces\BillInterface::class, Repositories\BillRepository::class);
+        $this->app->bind(Interfaces\GoalInterface::class, Repositories\GoalRepository::class);
     }
 
     /**

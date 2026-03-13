@@ -92,6 +92,31 @@ Route::group(['middleware' => 'auth:sanctum'], function () {
         Route::delete('/{id}', [Api\BudgetController::class, 'destroy'])->whereUuid('id');
     });
 
+    // Bills
+    Route::group(['prefix' => 'bills'], function () {
+        Route::get('/', [Api\BillController::class, 'index']);
+        Route::post('/', [Api\BillController::class, 'store']);
+        Route::get('/{id}', [Api\BillController::class, 'show'])->whereUuid('id');
+        Route::put('/{id}', [Api\BillController::class, 'update'])->whereUuid('id');
+        Route::delete('/{id}', [Api\BillController::class, 'destroy'])->whereUuid('id');
+    });
+
+    // Goals
+    Route::group(['prefix' => 'goals'], function () {
+        Route::get('/', [Api\GoalController::class, 'index']);
+        Route::post('/', [Api\GoalController::class, 'store']);
+        Route::get('/{id}', [Api\GoalController::class, 'show'])->whereUuid('id');
+        Route::put('/{id}', [Api\GoalController::class, 'update'])->whereUuid('id');
+        Route::delete('/{id}', [Api\GoalController::class, 'destroy'])->whereUuid('id');
+    });
+
+    // Reports
+    Route::group(['prefix' => 'reports'], function () {
+        Route::get('/monthly', [Api\ReportController::class, 'monthly']);
+        Route::get('/yearly', [Api\ReportController::class, 'yearly']);
+        Route::get('/category-expense', [Api\ReportController::class, 'categoryExpense']);
+    });
+
     // Dashboard
     Route::get('/dashboard', [Api\DashboardController::class, 'index']);
 
