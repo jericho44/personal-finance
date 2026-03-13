@@ -1,7 +1,9 @@
 <template>
     <div>
         <!--begin::Aside-->
-        <div id="kt_aside" class="aside aside-light aside-hoverable" data-kt-drawer="true" data-kt-drawer-name="aside"
+        <div id="kt_aside" class="aside aside-hoverable" 
+            :class="themeStore.mode === 'light' ? 'aside-light' : 'aside-dark'"
+            data-kt-drawer="true" data-kt-drawer-name="aside"
             data-kt-drawer-activate="{default: true, lg: false}" data-kt-drawer-overlay="true"
             data-kt-drawer-width="{default:'200px', '300px': '250px'}" data-kt-drawer-direction="start"
             data-kt-drawer-toggle="#kt_aside_mobile_toggle">
@@ -242,12 +244,14 @@ import { useRoute } from 'vue-router';
 import { LogoIcon } from '@/components/icons';
 import { useAuthorizationStore } from '@/stores/authorization';
 import { useEnvironmentStore } from '@/stores/environment';
+import { useThemeStore } from '@/stores/theme';
 
 const roleId = ref<string | null>(null);
 
 const route = useRoute();
 const authorizationStore = useAuthorizationStore();
 const environmentStore = useEnvironmentStore();
+const themeStore = useThemeStore();
 
 const pageActive = (menu: string | string[]) => {
     let active = '';

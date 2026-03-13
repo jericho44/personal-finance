@@ -2,7 +2,7 @@
     <div>
         <!--begin::Header-->
         <div id="kt_header" class="header align-items-stretch"
-            style="background-color: white; box-shadow: 0px 1px 5px rgba(0,0,0,0.1);">
+            style="box-shadow: 0px 1px 5px rgba(0,0,0,0.1);">
             <!--begin::Container-->
             <div class="container-fluid d-flex align-items-stretch justify-content-between">
                 <!--begin::Aside mobile toggle-->
@@ -67,6 +67,14 @@
                         <div class="d-flex align-items-stretch flex-shrink-0">
                             <!--begin::Search-->
                             <div class="d-flex align-items-stretch ms-1 ms-lg-3">
+                                <!--begin::Theme mode-->
+                                <div class="d-flex align-items-center ms-1 ms-lg-3">
+                                    <a href="#" @click.prevent="themeStore.toggleMode()" class="btn btn-icon btn-active-light-primary w-30px h-30px w-md-40px h-md-40px">
+                                        <i v-if="themeStore.mode === 'light'" class="bi bi-moon fs-2"></i>
+                                        <i v-else class="bi bi-sun fs-2"></i>
+                                    </a>
+                                </div>
+                                <!--end::Theme mode-->
                                 <!--begin::User-->
                                 <div class="d-flex align-items-center ms-1 ms-lg-3" id="kt_header_user_menu_toggle">
                                     <!--begin::Menu wrapper-->
@@ -203,9 +211,11 @@ import { toast } from 'vue3-toastify';
 import Swal from 'sweetalert2';
 
 import { useAuthorizationStore } from '@/stores/authorization';
+import { useThemeStore } from '@/stores/theme';
 import { axiosHandleError, loaderHide, loaderShow } from '@/plugins/global';
 
 const authorizationStore = useAuthorizationStore()
+const themeStore = useThemeStore();
 
 const router = useRouter();
 

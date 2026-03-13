@@ -221,11 +221,13 @@
 <script setup lang="ts">
 import { ref, onMounted, computed } from "vue";
 import { useDashboardStore } from "@stores/dashboard";
+import { useThemeStore } from "@stores/theme";
 import { axiosHandleError, initializeAppPlugins, loaderHide, loaderShow } from "@/plugins/global";
 import { IDashboardData } from "@/types/dashboard";
 import dayjs from "dayjs";
 
 const dashboardStore = useDashboardStore();
+const themeStore = useThemeStore();
 const summary = ref<IDashboardData | null>(null);
 
 const chartSeries = computed(() => {
@@ -239,6 +241,9 @@ const chartOptions = computed(() => {
         chart: {
             type: 'donut',
             fontFamily: 'inherit',
+        },
+        theme: {
+            mode: themeStore.mode === 'dark' ? 'dark' : 'light'
         },
         labels: categories.map(item => item.category),
         colors: categories.map(item => item.color || '#cccccc'),

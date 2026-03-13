@@ -142,6 +142,7 @@
 <script setup lang="ts">
 import { ref, onMounted, computed } from 'vue';
 import { useReportStore } from "@stores/report";
+import { useThemeStore } from "@stores/theme";
 import { axiosHandleError, loaderHide, loaderShow } from '@/plugins/global';
 import dayjs from 'dayjs';
 import 'dayjs/locale/id';
@@ -149,6 +150,7 @@ import 'dayjs/locale/id';
 dayjs.locale('id');
 
 const reportStore = useReportStore();
+const themeStore = useThemeStore();
 const currentTab = ref('monthly');
 const selectedMonth = ref(dayjs().format('YYYY-MM'));
 const selectedYear = ref(dayjs().format('YYYY'));
@@ -178,6 +180,9 @@ const yearlyOptions = computed(() => {
             type: 'bar',
             height: 350,
             toolbar: { show: false }
+        },
+        theme: {
+            mode: themeStore.mode === 'dark' ? 'dark' : 'light'
         },
         plotOptions: {
             bar: {

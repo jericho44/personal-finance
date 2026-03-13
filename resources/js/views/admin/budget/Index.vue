@@ -7,7 +7,7 @@
                         <div class="card card-flush mt-5 mb-5 mb-xl-10">
                             <div class="card-header border-0 pt-5 align-items-center">
                                 <h3 class="card-title align-items-start flex-column">
-                                    <span class="card-label fw-bolder text-dark mb-2">Manajemen Anggaran</span>
+                                    <span class="card-label fw-bolder text-gray-900 mb-2">Manajemen Anggaran</span>
                                     <span class="text-muted fs-6">Pantau dan kelola batas pengeluaran Anda</span>
                                 </h3>
                                 <div class="d-flex align-items-center">
@@ -23,13 +23,13 @@
                             <div class="card-body pt-5">
                                 <div class="row" v-if="budgetProgress.length > 0">
                                     <div class="col-md-6 mb-7" v-for="item in budgetProgress" :key="item.budget.id_hash">
-                                        <div class="border border-dashed border-gray-300 rounded p-5">
+                                        <div class="border border-dashed border-gray-400 rounded p-5">
                                             <div class="d-flex align-items-center justify-content-between mb-4">
                                                 <div class="d-flex align-items-center">
                                                     <span class="badge badge-circle w-30px h-30px me-3" :style="{ backgroundColor: item.budget.category?.color || '#cccccc' }">
                                                         <i v-if="item.budget.category?.icon" :class="item.budget.category.icon + ' text-white fs-6'"></i>
                                                     </span>
-                                                    <span class="text-dark fw-bolder fs-5">{{ item.budget.category?.name || 'Kategori Dihapus' }}</span>
+                                                    <span class="text-gray-900 fw-bolder fs-5">{{ item.budget.category?.name || 'Kategori Dihapus' }}</span>
                                                 </div>
                                                 <div class="d-flex">
                                                     <button class="btn btn-icon btn-bg-light btn-active-color-primary btn-sm me-1" @click="edit(item.budget)">
@@ -47,10 +47,10 @@
 
                                             <div class="d-flex justify-content-between mb-2">
                                                 <span class="text-muted fw-bold">Terpakai: {{ formatCurrency(item.spent) }}</span>
-                                                <span class="text-dark fw-bolder">Batas: {{ formatCurrency(item.budget.amount) }}</span>
+                                                <span class="text-gray-900 fw-bolder">Batas: {{ formatCurrency(item.budget.amount) }}</span>
                                             </div>
 
-                                            <div class="h-8px w-100 bg-light rounded mb-2">
+                                            <div class="h-8px w-100 bg-secondary bg-opacity-50 rounded mb-2">
                                                 <div class="rounded h-100" 
                                                     :class="{
                                                         'bg-success': item.percentage <= 50,

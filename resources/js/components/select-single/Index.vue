@@ -1,9 +1,9 @@
 <template>
     <div class="vue-select-single-energeek" ref="dropdownRef">
-        <div class="select-single-box" :style="{ background: disabled ? '#eff2f5' : '#fff' }"
+        <div class="select-single-box" :style="{ background: disabled ? 'var(--kt-input-disabled-bg)' : 'var(--bs-body-bg)' }"
             @click="handleDropdownToggle">
             <div :style="{
-                color: notEmptyObject(modelValue) ? '#181c32' : '#a1a5b7',
+                color: notEmptyObject(modelValue) ? 'var(--kt-text-gray-900)' : 'var(--kt-text-gray-500)',
                 fontWeight: 500,
                 fontSize: '1.1rem',
                 overflow: 'hidden',
@@ -18,13 +18,13 @@
                     <svg width="14px" height="14px" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
                         <path fill-rule="evenodd" clip-rule="evenodd"
                             d="M5.29 5.29c.39-.39 1.02-.39 1.41 0L12 10.59l5.29-5.3c.39-.39 1.02-.39 1.41 0s.39 1.02 0 1.41L13.41 12l5.3 5.29c.39.39.39 1.02 0 1.41-.39.39-1.02.39-1.41 0L12 13.41l-5.29 5.3c-.39.39-1.02.39-1.41 0-.39-.39-.39-1.02 0-1.41L10.59 12 5.3 6.71c-.39-.39-.39-1.02 0-1.42z"
-                            fill="#0F1729" />
+                            fill="currentColor" />
                     </svg>
 
                 </div>
                 <div>
                     <svg height="13px" width="13px" viewBox="0 0 26 15">
-                        <polygon fill="#231F20"
+                        <polygon fill="currentColor"
                             points="23.303,-0.002 12.467,10.834 1.63,-0.002 -0.454,2.082 12.467,15.002 14.551,12.918 25.387,2.082" />
                     </svg>
                 </div>
@@ -169,9 +169,9 @@ onUnmounted(() => {
     align-items: center;
     justify-content: space-between;
     padding: .75rem 1rem;
-    border: 1px solid #e4e6ef !important;
-    background-color: #fff;
-    border-radius: '5px';
+    border: 1px solid var(--kt-border-color) !important;
+    background-color: var(--bs-body-bg);
+    border-radius: 5px;
     padding: .75rem 1rem;
     cursor: pointer;
     font-size: 1.1rem;
@@ -181,7 +181,8 @@ onUnmounted(() => {
     width: 100%;
     padding: 10px 0;
     margin-left: 10px;
-    color: black;
+    color: var(--kt-text-gray-900);
+    background-color: transparent;
     font-size: 1.1rem;
 }
 
@@ -189,8 +190,8 @@ onUnmounted(() => {
     position: absolute;
     width: 100%;
     z-index: 99999;
-    background-color: #fff;
-    border: 1px solid rgb(229, 229, 229);
+    background-color: var(--bs-body-bg);
+    border: 1px solid var(--kt-border-color);
     border-top: 0 !important;
 
 }
@@ -201,7 +202,7 @@ onUnmounted(() => {
 }
 
 .vue-select-single-energeek .select-single-option-list a {
-    color: black;
+    color: var(--kt-text-gray-800);
     padding: 10px;
     width: 100%;
     font-size: 1.1rem;
@@ -212,17 +213,17 @@ onUnmounted(() => {
 
 .vue-select-single-energeek .select-single-option-list a:hover,
 .vue-select-single-energeek .select-single-option-list a.active {
-    background-color: #f2f2f2 !important;
+    background-color: var(--kt-gray-100) !important;
 }
 
 .vue-select-single-energeek .select-single-option-list a.disabled {
     cursor: no-drop;
-    background-color: #fff !important;
+    background-color: var(--bs-body-bg) !important;
 }
 
 .vue-select-single-energeek .select-single-option-list a.no-select {
     cursor: no-drop;
-    background-color: #f2f2f2 !important;
+    background-color: var(--kt-gray-100) !important;
 }
 
 .vue-select-single-energeek .select-single-remove-icon {
@@ -230,7 +231,7 @@ onUnmounted(() => {
 }
 
 .vue-select-single-energeek .select-single-remove-icon svg path {
-    fill: black;
+    fill: currentColor;
 }
 
 .vue-select-single-energeek .select-single-remove-icon:hover svg path {

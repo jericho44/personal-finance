@@ -7,7 +7,7 @@
                         <div class="card card-flush mt-5 mb-5 mb-xl-10">
                             <div class="card-header border-0 pt-5 align-items-center">
                                 <h3 class="card-title align-items-start flex-column">
-                                    <span class="card-label fw-bolder text-dark mb-2">Manajemen Akun</span>
+                                    <span class="card-label fw-bolder text-gray-900 mb-2">Manajemen Akun</span>
                                     <span class="text-muted fs-6">Kelola Akun Keuangan Anda</span>
                                 </h3>
                                 <button type="button" class="btn h-50 btn-primary text-white" @click="showModalAdd">
@@ -36,7 +36,7 @@
                                                 <td>
                                                     <div class="d-flex align-items-center">
                                                         <div class="d-flex justify-content-start flex-column">
-                                                            <span class="text-dark fw-bolder text-hover-primary mb-1 fs-6">{{ account.name }}</span>
+                                                            <span class="text-gray-900 fw-bolder text-hover-primary mb-1 fs-6">{{ account.name }}</span>
                                                             <span class="text-muted fw-bold text-muted d-block fs-7">{{ account.currency }}</span>
                                                         </div>
                                                     </div>

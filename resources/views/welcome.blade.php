@@ -23,7 +23,14 @@
     var assetUrl = "{{ asset('/assets/') }}/";
 </script>
 
+<script>
+    var themeMode = localStorage.getItem("theme_mode") || "light";
+    document.documentElement.setAttribute("data-bs-theme", themeMode);
+    document.documentElement.setAttribute("data-kt-theme", themeMode);
+</script>
+
 <body id="kt_body"
+    data-kt-theme="light"
     class="header-fixed header-tablet-and-mobile-fixed toolbar-enabled toolbar-fixed aside-enabled aside-fixed"
     style="--kt-toolbar-height:55px;--kt-toolbar-height-tablet-and-mobile:55px">
     <div id="app">

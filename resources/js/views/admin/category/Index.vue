@@ -7,7 +7,7 @@
                         <div class="card card-flush mt-5 mb-5 mb-xl-10">
                             <div class="card-header border-0 pt-5 align-items-center">
                                 <h3 class="card-title align-items-start flex-column">
-                                    <span class="card-label fw-bolder text-dark mb-2">Kategori Keuangan</span>
+                                    <span class="card-label fw-bolder text-gray-900 mb-2">Kategori Keuangan</span>
                                     <span class="text-muted fs-6">Kelola Kategori Pemasukan dan Pengeluaran</span>
                                 </h3>
                                 <button type="button" class="btn h-50 btn-primary text-white" @click="showModalAdd">

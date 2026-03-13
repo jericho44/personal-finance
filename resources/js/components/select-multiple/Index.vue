@@ -1,16 +1,16 @@
 <template>
     <div class="vue-select-multiple-energeek" ref="dropdownRef">
-        <div class="select-multiple-box" :style="{ background: disabled ? '#eff2f5' : '#fff' }"
+        <div class="select-multiple-box" :style="{ background: disabled ? 'var(--kt-input-disabled-bg)' : 'var(--bs-body-bg)' }"
             @click="handleDropdownToggle">
             <div v-if="hasValue(modelValue)" class="select-multiple-selected-value-group">
                 <div v-for="(context, index) in modelValue" :key="index"
-                    style="font-size: 1.1rem; background: #f3f6f9;border-radius: 5px;padding: 3px 10px;color: black;margin-right: 10px;display: flex;align-items: center;margin-top: 3px;margin-bottom:  3px;">
+                    style="font-size: 1.1rem; background: var(--kt-gray-200);border-radius: 5px;padding: 3px 10px;color: var(--kt-text-gray-900);margin-right: 10px;display: flex;align-items: center;margin-top: 3px;margin-bottom:  3px;">
                     <div style="margin-right: 5px;cursor: pointer;" @click="handleRemoveSelectedValue(index)">
                         <svg width="14px" height="14px" viewBox="0 0 24 24" fill="none"
                             xmlns="http://www.w3.org/2000/svg">
                             <path fill-rule="evenodd" clip-rule="evenodd"
                                 d="M5.29 5.29c.39-.39 1.02-.39 1.41 0L12 10.59l5.29-5.3c.39-.39 1.02-.39 1.41 0s.39 1.02 0 1.41L13.41 12l5.3 5.29c.39.39.39 1.02 0 1.41-.39.39-1.02.39-1.41 0L12 13.41l-5.29 5.3c-.39.39-1.02.39-1.41 0-.39-.39-.39-1.02 0-1.41L10.59 12 5.3 6.71c-.39-.39-.39-1.02 0-1.42z"
-                                fill="#0F1729" />
+                                fill="currentColor" />
                         </svg>
 
                     </div>
@@ -20,7 +20,7 @@
                 </div>
             </div>
             <div v-else
-                style="color: #a1a5b7;font-weight: 500;font-size: 1.1rem;overflow: hidden;white-space: nowrap;text-overflow: ellipsis;"
+                style="color: var(--kt-text-gray-500);font-weight: 500;font-size: 1.1rem;overflow: hidden;white-space: nowrap;text-overflow: ellipsis;"
                 v-html="placeholder || 'Pilih Data'" />
 
             <div class="d-flex" style="margin-left: 10px">
@@ -35,7 +35,7 @@
                 </div>
                 <div>
                     <svg height="13px" width="13px" viewBox="0 0 26 15">
-                        <polygon fill="#231F20"
+                        <polygon fill="currentColor"
                             points="23.303,-0.002 12.467,10.834 1.63,-0.002 -0.454,2.082 12.467,15.002 14.551,12.918 25.387,2.082" />
                     </svg>
                 </div>
@@ -195,9 +195,9 @@ onUnmounted(() => {
     align-items: center;
     justify-content: space-between;
     padding: .75rem 1rem;
-    border: 1px solid #e4e6ef !important;
-    background-color: #fff;
-    border-radius: '5px';
+    border: 1px solid var(--kt-border-color) !important;
+    background-color: var(--bs-body-bg);
+    border-radius: 5px;
     padding: .75rem 1rem;
     cursor: pointer;
     font-size: 1.1rem;
@@ -207,7 +207,8 @@ onUnmounted(() => {
     width: 100%;
     padding: 10px 0;
     margin-left: 10px;
-    color: black;
+    color: var(--kt-text-gray-900);
+    background-color: transparent;
     font-size: 1.1rem;
 }
 
@@ -215,8 +216,8 @@ onUnmounted(() => {
     position: absolute;
     width: 100%;
     z-index: 99999;
-    background-color: #fff;
-    border: 1px solid rgb(229, 229, 229);
+    background-color: var(--bs-body-bg);
+    border: 1px solid var(--kt-border-color);
     border-top: 0 !important;
 
 }
@@ -227,7 +228,7 @@ onUnmounted(() => {
 }
 
 .vue-select-multiple-energeek .select-multiple-option-list a {
-    color: black;
+    color: var(--kt-text-gray-800);
     padding: 10px;
     width: 100%;
     font-size: 1.1rem;
@@ -238,41 +239,29 @@ onUnmounted(() => {
 
 .vue-select-multiple-energeek .select-multiple-option-list a:hover,
 .vue-select-multiple-energeek .select-multiple-option-list a.active {
-    background-color: #f2f2f2 !important;
+    background-color: var(--kt-gray-100) !important;
 }
 
 .vue-select-multiple-energeek .select-multiple-option-list a.disabled {
     cursor: no-drop;
-    background-color: #fff !important;
+    background-color: var(--bs-body-bg) !important;
 }
 
 .vue-select-multiple-energeek .select-multiple-option-list a.no-select {
     cursor: no-drop;
-    background-color: #f2f2f2 !important;
+    background-color: var(--kt-gray-100) !important;
 }
 
 .vue-select-multiple-energeek .select-multiple-remove-icon {
     margin-right: 5px;
 }
 
-.vue-select-multiple-energeek .select-multiple-remove-icon svg path {
-    fill: black;
-}
-
-.vue-select-multiple-energeek .select-multiple-remove-icon:hover svg path {
-    fill: red;
-}
-
-.vue-select-multiple-energeek .select-multiple-selected-value-group {
-    display: flex;
-    flex-wrap: wrap;
-}
-
-
+.vue-select-multiple-energeek .select-multiple-remove-icon svg path,
 .vue-select-multiple-energeek .select-multiple-selected-value-group svg path {
-    fill: black;
+    fill: currentColor;
 }
 
+.vue-select-multiple-energeek .select-multiple-remove-icon:hover svg path,
 .vue-select-multiple-energeek .select-multiple-selected-value-group svg:hover path {
     fill: red;
 }

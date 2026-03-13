@@ -9,8 +9,8 @@
                     <option value="50">50</option>
                     <option value="100">100</option>
                 </select>
-                <div class="d-flex" style="border: 1px #ddd solid; border-radius: 3px" v-if="mode == 'v2'">
-                    <div style="background: #fff; padding: 5px 15px">
+                <div class="d-flex" style="border: 1px var(--kt-border-color) solid; border-radius: 3px" v-if="mode == 'v2'">
+                    <div style="background: var(--bs-body-bg); padding: 5px 15px">
                         <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none">
                             <rect opacity="0.5" x="17.0365" y="15.1223" width="8.15546" height="2" rx="1"
                                 transform="rotate(45 17.0365 15.1223)" fill="currentColor" />
@@ -24,8 +24,8 @@
                 </div>
             </div>
             <div class="datatable-right-header">
-                <div class="d-flex me-3" style="border: 1px #ddd solid; border-radius: 3px" v-if="mode == 'v1'">
-                    <div style="background: #fff; padding: 5px 15px">
+                <div class="d-flex me-3" style="border: 1px var(--kt-border-color) solid; border-radius: 3px" v-if="mode == 'v1'">
+                    <div style="background: var(--bs-body-bg); padding: 5px 15px">
                         <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none">
                             <rect opacity="0.5" x="17.0365" y="15.1223" width="8.15546" height="2" rx="1"
                                 transform="rotate(45 17.0365 15.1223)" fill="currentColor" />
@@ -54,13 +54,13 @@
                                         height="13px" version="1.1" viewBox="0 0 26 15" width="13px"
                                         xml:space="preserve" xmlns="http://www.w3.org/2000/svg"
                                         xmlns:xlink="http://www.w3.org/1999/xlink">
-                                        <polygon fill="#231F20"
+                                        <polygon fill="currentColor"
                                             points="23.303,15.002 12.467,4.166 1.63,15.002 -0.454,12.918 12.467,-0.002 14.551,2.082 25.387,12.918" />
                                     </svg>
                                     <svg v-else enable-background="new 0 0 26 15" height="13px" id="Layer_1"
                                         version="1.1" viewBox="0 0 26 15" width="13px" xml:space="preserve"
                                         xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
-                                        <polygon fill="#231F20"
+                                        <polygon fill="currentColor"
                                             points="23.303,-0.002 12.467,10.834 1.63,-0.002 -0.454,2.082 12.467,15.002 14.551,12.918 25.387,2.082" />
                                     </svg>
                                 </template>
@@ -385,7 +385,7 @@ const onClickLastPage = function () {
     background-color: #f2f2f2;
     font-weight: 400;
     line-height: 1.5;
-    border: 1px #ddd solid;
+    border: 1px var(--kt-border-color) solid;
     border-radius: 3px;
 }
 
@@ -442,7 +442,8 @@ const onClickLastPage = function () {
 
 .vue-datatable-energeek .custom-vue-datatable-pagination button {
     padding: 10px;
-    background-color: #fff !important;
+    background-color: transparent !important;
+    color: inherit !important;
     border: 0 !important;
     width: 35px;
     display: flex;
@@ -470,17 +471,17 @@ const onClickLastPage = function () {
 }
 
 .vue-datatable-energeek .custom-vue-datatable thead tr th {
-    border-bottom: 1px #eaebed solid !important;
+    border-bottom: 1px var(--kt-border-color) solid !important;
     padding: 15px 5px;
-    color: #3F4254;
+    color: var(--kt-text-gray-800);
     font-size: 14px;
-    background-color: white;
+    background-color: transparent;
     font-weight: 600 !important;
     cursor: pointer;
 }
 
 .vue-datatable-energeek .custom-vue-datatable tbody tr td {
-    border-bottom: 1px #eaebed solid !important;
+    border-bottom: 1px var(--kt-border-color) solid !important;
     padding: 15px 5px;
 }
 
