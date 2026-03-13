@@ -13,6 +13,19 @@ export interface IDashboardData {
         total: number;
     }>;
     recent_transactions: ITransaction[];
+    budgets: {
+        total_limit: number;
+        total_spent: number;
+        percentage: number;
+    };
+    bills: {
+        upcoming_count: number;
+    };
+    goals: {
+        total_count: number;
+        completed_count: number;
+        overall_progress: number;
+    };
 }
 
 export interface IDashboardResponse {

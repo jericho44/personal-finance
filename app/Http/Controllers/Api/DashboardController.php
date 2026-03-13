@@ -52,6 +52,36 @@ class DashboardController extends Controller
             ->limit(5)
             ->get();
 
+        // Budget Summary
+        $activeBudgets = \App\Models\Budget::where('user_id', $userId)
+            ->where('start_date', '<=', now()->format('Y-m-d'))
+            ->where('end_date', '>=', now()->format('Y-m-d'))
+            ->get();
+        
+        $totalBudgetLimit = $activeBudgets->sum('amount');
+        $totalBudgetSpent = 0;
+        foreach ($activeBudgets as $budget) {
+            $spent = \App\Models\Transaction::where('user_id', $userId)
+                ->where('type', 'expense')
+                ->where('category_id', $budget->category_id)
+                ->whereBetween('date', [$budget->start_date, $budget->end_date])
+                ->sum('amount');
+            $totalBudgetSpent += $spent;
+        }
+
+        // Upcoming Bills
+        $upcomingBillsCount = \App\Models\Bill::where('user_id', $userId)
+            ->where('is_paid', false)
+            ->where('due_date', '<=', now()->addDays(7)->format('Y-m-d'))
+            ->where('due_date', '>=', now()->format('Y-m-d'))
+            ->count();
+
+        // Goals Summary
+        $goalsCount = \App\Models\Goal::where('user_id', $userId)->count();
+        $completedGoalsCount = \App\Models\Goal::where('user_id', $userId)->where('is_completed', true)->count();
+        $totalGoalTarget = \App\Models\Goal::where('user_id', $userId)->sum('target_amount');
+        $totalGoalCurrent = \App\Models\Goal::where('user_id', $userId)->sum('current_amount');
+
         return response()->json([
             'success' => true,
             'data' => [
@@ -62,7 +92,20 @@ class DashboardController extends Controller
                     'balance' => floatval($currentMonthIncome - $currentMonthExpense)
                 ],
                 'spending_by_category' => $spendingByCategory,
-                'recent_transactions' => $recentTransactions
+                'recent_transactions' => $recentTransactions,
+                'budgets' => [
+                    'total_limit' => floatval($totalBudgetLimit),
+                    'total_spent' => floatval($totalBudgetSpent),
+                    'percentage' => $totalBudgetLimit > 0 ? round(($totalBudgetSpent / $totalBudgetLimit) * 100, 2) : 0
+                ],
+                'bills' => [
+                    'upcoming_count' => $upcomingBillsCount
+                ],
+                'goals' => [
+                    'total_count' => $goalsCount,
+                    'completed_count' => $completedGoalsCount,
+                    'overall_progress' => $totalGoalTarget > 0 ? round(($totalGoalCurrent / $totalGoalTarget) * 100, 2) : 0
+                ]
             ]
         ]);
     }

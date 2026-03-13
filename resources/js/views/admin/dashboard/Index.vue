@@ -55,6 +55,88 @@
                                 </div>
                             </div>
                         </div>
+                        
+                        <!-- Quick Stats Summary -->
+                        <div class="row g-5 g-xl-8 mb-xl-5 mb-5">
+                            <!-- Budget Widget -->
+                            <div class="col-md-4">
+                                <div class="card card-flush h-md-100 bg-light-primary border border-primary border-dashed">
+                                    <div class="card-body">
+                                        <div class="d-flex align-items-center mb-5">
+                                            <div class="symbol symbol-45px me-5">
+                                                <span class="symbol-label bg-primary">
+                                                    <i class="fa fa-chart-pie text-white fs-4"></i>
+                                                </span>
+                                            </div>
+                                            <div class="d-flex flex-column">
+                                                <span class="text-primary fw-bolder fs-6">Pemakaian Anggaran</span>
+                                                <span class="text-gray-400 fw-bold fs-7">Bulan Ini</span>
+                                            </div>
+                                        </div>
+                                        <div class="d-flex flex-column w-100 mt-auto">
+                                            <span class="text-dark fw-bolder fs-4 mb-2">{{ summary?.budgets?.percentage || 0 }}% Digunakan</span>
+                                            <div class="h-8px w-100 bg-white bg-opacity-50 rounded">
+                                                <div class="bg-primary rounded h-8px" role="progressbar" :style="`width: ${Math.min(summary?.budgets?.percentage || 0, 100)}%`" aria-valuenow="50" aria-valuemin="0" aria-valuemax="100"></div>
+                                            </div>
+                                            <div class="text-muted fs-8 mt-2 ms-0">
+                                                {{ formatCurrency(summary?.budgets?.total_spent || 0) }} / {{ formatCurrency(summary?.budgets?.total_limit || 0) }}
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Bills Widget -->
+                            <div class="col-md-4">
+                                <router-link :to="{ name: 'a-m-bill' }" class="card card-flush h-md-100 bg-light-warning border border-warning border-dashed text-decoration-none">
+                                    <div class="card-body d-flex flex-column justify-content-center">
+                                        <div class="d-flex align-items-center mb-5">
+                                            <div class="symbol symbol-45px me-5">
+                                                <span class="symbol-label bg-warning">
+                                                    <i class="fa fa-file-invoice-dollar text-white fs-4"></i>
+                                                </span>
+                                            </div>
+                                            <div class="d-flex flex-column">
+                                                <span class="text-warning fw-bolder fs-6">Tagihan Mendatang</span>
+                                                <span class="text-gray-400 fw-bold fs-7">7 Hari ke Depan</span>
+                                            </div>
+                                        </div>
+                                        <div class="text-dark fw-bolder fs-2tx lh-1 mb-2">
+                                            {{ summary?.bills?.upcoming_count || 0 }}
+                                        </div>
+                                        <span class="text-muted fw-bold fs-6">Tagihan Belum Dibayar</span>
+                                    </div>
+                                </router-link>
+                            </div>
+
+                            <!-- Goals Widget -->
+                            <div class="col-md-4">
+                                <router-link :to="{ name: 'a-m-goal' }" class="card card-flush h-md-100 bg-light-info border border-info border-dashed text-decoration-none">
+                                    <div class="card-body">
+                                        <div class="d-flex align-items-center mb-5">
+                                            <div class="symbol symbol-45px me-5">
+                                                <span class="symbol-label bg-info">
+                                                    <i class="fa fa-bullseye text-white fs-4"></i>
+                                                </span>
+                                            </div>
+                                            <div class="d-flex flex-column">
+                                                <span class="text-info fw-bolder fs-6">Tujuan Keuangan</span>
+                                                <span class="text-gray-400 fw-bold fs-7">Progress Keseluruhan</span>
+                                            </div>
+                                        </div>
+                                        <div class="d-flex flex-column w-100 mt-auto">
+                                            <span class="text-dark fw-bolder fs-4 mb-2">{{ summary?.goals?.overall_progress || 0 }}% Tercapai</span>
+                                            <div class="h-8px w-100 bg-white bg-opacity-50 rounded">
+                                                <div class="bg-info rounded h-8px" role="progressbar" :style="`width: ${Math.min(summary?.goals?.overall_progress || 0, 100)}%`" aria-valuenow="50" aria-valuemin="0" aria-valuemax="100"></div>
+                                            </div>
+                                            <div class="text-muted fs-8 mt-2 ms-0">
+                                                {{ summary?.goals?.completed_count || 0 }} dari {{ summary?.goals?.total_count || 0 }} Goal Selesai
+                                            </div>
+                                        </div>
+                                    </div>
+                                </router-link>
+                            </div>
+                        </div>
 
                         <!-- Charts and Recent Transactions -->
                         <div class="row g-5 g-xl-8">
