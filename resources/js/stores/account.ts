@@ -5,7 +5,9 @@ import { IAccountPayload } from '@src/types/account';
 export const useAccountStore = defineStore('account', () => {
 
     async function getAll() {
-        const response = await api().get('api/accounts');
+        const response = await api().get('api/accounts', {
+            params: { limit: 0 }
+        });
         return response;
     }
 

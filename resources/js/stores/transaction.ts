@@ -5,7 +5,7 @@ import { ITransactionPayload, ITransactionFilters } from '@src/types/transaction
 export const useTransactionStore = defineStore('transaction', () => {
 
     async function getAll(filters: ITransactionFilters = {}) {
-        const response = await api().get('api/transactions', { params: filters });
+        const response = await api().get('api/transactions', { params: { ...filters, limit: 0 } });
         return response;
     }
 

@@ -37,7 +37,7 @@
                                                             <i class="fa fa-pen" />
                                                         </span>
                                                     </button>
-                                                    <button class="btn btn-icon btn-bg-light btn-active-color-danger btn-sm" @click="confirmDelete(item.budget.id_hash)">
+                                                    <button class="btn btn-icon btn-bg-light btn-active-color-danger btn-sm" @click="confirmDelete(item.budget.id)">
                                                         <span class="svg-icon svg-icon-danger">
                                                             <i class="fa fa-trash" />
                                                         </span>
@@ -64,8 +64,8 @@
 
                                             <div class="d-flex justify-content-between">
                                                 <span class="text-muted fs-7">{{ item.percentage }}%</span>
-                                                <span class="fs-7 fw-bolder" :class="item.is_over_budget ? 'text-danger' : 'text-success'">
-                                                    {{ item.is_over_budget ? 'Melebihi anggaran' : `Tersisa: ${formatCurrency(item.remaining)}` }}
+                                                <span class="fs-7 fw-bolder" :class="item.isOverBudget ? 'text-danger' : 'text-success'">
+                                                    {{ item.isOverBudget ? 'Melebihi anggaran' : `Tersisa: ${formatCurrency(item.remaining)}` }}
                                                 </span>
                                             </div>
                                         </div>
@@ -98,7 +98,7 @@
                         </label>
                         <select class="form-select" v-model="single.category_id">
                             <option value="">Pilih Kategori...</option>
-                            <option v-for="category in categories" :key="category.id_hash" :value="category.id">
+                            <option v-for="category in categories" :key="category.idHash" :value="category.id">
                                 {{ category.name }}
                             </option>
                         </select>
@@ -194,7 +194,7 @@ const selectedPeriod = ref<'current_month' | 'last_month'>('current_month');
 const flag = ref<'insert' | 'edit'>('insert');
 
 const single = reactive({
-    id_hash: '' as string,
+    idHash: '' as string,
     category_id: '' as number | string,
     amount: '' as number | string,
     start_date: dayjs().startOf('month').format('YYYY-MM-DD') as string,
@@ -227,9 +227,10 @@ onMounted(async () => {
 
 async function fetchCategories() {
     try {
-        const res = await categoryStore.getAll();
+        const res = await categoryStore.getAll(1, 0);
         // Only get expense categories for budgeting
-        categories.value = res.data.data.filter((c: ICategory) => c.type === 'expense');
+        const catData = res.data.data.data ? res.data.data.data : res.data.data;
+        categories.value = catData.filter((c: ICategory) => c.type === 'expense');
     } catch (error) {
         axiosHandleError(error);
     }
@@ -255,12 +256,12 @@ function showModalAdd() {
 function edit(item: IBudget) {
     reset();
     flag.value = 'edit';
-    single.id_hash = item.id_hash;
-    single.category_id = item.category_id;
+    single.idHash = item.idHash;
+    single.category_id = item.categoryId;
     single.amount = item.amount;
-    single.start_date = dayjs(item.start_date).format('YYYY-MM-DD');
-    single.end_date = dayjs(item.end_date).format('YYYY-MM-DD');
-    single.is_active = item.is_active;
+    single.start_date = dayjs(item.startDate).format('YYYY-MM-DD');
+    single.end_date = dayjs(item.endDate).format('YYYY-MM-DD');
+    single.is_active = item.isActive;
     single.notes = item.notes || '';
     modalForm.value?.show();
 }
@@ -283,7 +284,7 @@ async function saveData() {
         if (flag.value === 'insert') {
             await budgetStore.create(payload);
         } else {
-            await budgetStore.update(single.id_hash, payload);
+            await budgetStore.update(single.idHash, payload);
         }
 
         modalForm.value?.hide();
@@ -301,7 +302,7 @@ async function saveData() {
     }
 }
 
-async function confirmDelete(id_hash: string) {
+async function confirmDelete(idHash: string) {
     Swal.fire({
         title: 'Hapus Anggaran?',
         text: "Data anggaran akan dihapus secara permanen.",
@@ -314,7 +315,7 @@ async function confirmDelete(id_hash: string) {
         if (result.isConfirmed) {
             try {
                 loaderShow();
-                await budgetStore.destroy(id_hash);
+                await budgetStore.destroy(idHash);
                 toast.success('Anggaran berhasil dihapus');
                 fetchProgress();
             } catch (error) {
@@ -329,7 +330,7 @@ async function confirmDelete(id_hash: string) {
 function reset() {
     v$.value.$reset();
     flag.value = 'insert';
-    single.id_hash = '';
+    single.idHash = '';
     single.category_id = '';
     single.amount = '';
     single.start_date = dayjs().startOf('month').format('YYYY-MM-DD');

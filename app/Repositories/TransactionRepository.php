@@ -14,35 +14,82 @@ class TransactionRepository extends BaseRepository implements TransactionInterfa
         parent::__construct($model);
     }
 
-    public function getAll(int $userId, array $filters = [])
-    {
-        $query = $this->model->with(['account', 'targetAccount', 'category'])
-            ->where('user_id', $userId);
+    public function getAll(
+        int $userId,
+        $select = [],
+        $withRelations = [],
+        $join = [],
+        $filter = [],
+        $where = null,
+        $search = null,
+        $sortOption = [],
+        $paginateOption = [],
+        $reformat = null
+    ) {
+        $model = $this->model->query();
 
-        if (isset($filters['type']) && $filters['type'] !== 'all') {
-            $query->where('type', $filters['type']);
+        if (!empty($select)) {
+            $model->select($select);
+        }
+
+        $model->where('user_id', $userId);
+
+        if (! empty($withRelations)) {
+            $model->with($withRelations);
+        }
+
+        if (is_callable($where)) {
+            $model->where($where);
+        }
+
+        $model->when(strtolower($search), function ($query, $search) {
+            $query->where(function ($query) use ($search) {
+                // Search in Notes
+                $query->where(\Illuminate\Support\Facades\DB::raw('LOWER(transactions.notes)'), 'LIKE', "%{$search}%");
+                // Search via relations could be added here
+            });
+        });
+
+        if ($this->filled($filter, 'type') && $filter['type'] !== 'all') {
+            $model->where('type', $filter['type']);
         }
         
-        if (isset($filters['account_id']) && $filters['account_id']) {
-            $query->where(function($q) use ($filters) {
-                $q->where('account_id', $filters['account_id'])
-                  ->orWhere('target_account_id', $filters['account_id']);
+        if ($this->filled($filter, 'account_id')) {
+            $model->where(function($q) use ($filter) {
+                $q->where('account_id', $filter['account_id'])
+                  ->orWhere('target_account_id', $filter['account_id']);
             });
         }
         
-        if (isset($filters['category_id']) && $filters['category_id']) {
-            $query->where('category_id', $filters['category_id']);
+        if ($this->filled($filter, 'category_id')) {
+            $model->where('category_id', $filter['category_id']);
         }
         
-        if (isset($filters['start_date']) && $filters['start_date']) {
-            $query->where('date', '>=', $filters['start_date']);
+        if ($this->filled($filter, 'start_date')) {
+            $model->where('date', '>=', $filter['start_date']);
         }
         
-        if (isset($filters['end_date']) && $filters['end_date']) {
-            $query->where('date', '<=', $filters['end_date']);
+        if ($this->filled($filter, 'end_date')) {
+            $model->where('date', '<=', $filter['end_date']);
         }
 
-        return $query->orderBy('date', 'desc')->orderBy('created_at', 'desc')->get();
+        $model->orderBy(
+            $this->input($sortOption, 'orderCol', 'date'),
+            strtolower($this->input($sortOption, 'orderDir', 'desc')) === 'asc' ? 'asc' : 'desc'
+        );
+
+        $length = $this->input($paginateOption, 'length', 15);
+        if (strtolower($this->input($paginateOption, 'method', 'paginate')) === 'paginate' && $length > 0) {
+            $model = $model->paginate($length, ['*'], 'page', $this->input($paginateOption, 'page'));
+        } else {
+            $model = $model->limit($length > 0 ? $length : null)->get();
+        }
+
+        if (is_callable($reformat)) {
+            $model = $reformat($model);
+        }
+
+        return $model;
     }
 
     public function findByIdHash($idHash, $withRelations = ['account', 'targetAccount', 'category'], int $userId = null)

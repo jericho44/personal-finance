@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Api;
 
+use App\Helpers\ResponseFormatter;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 
@@ -16,9 +17,42 @@ class TransactionController extends Controller
 
     public function index(Request $request)
     {
-        $filters = $request->only(['type', 'account_id', 'category_id', 'start_date', 'end_date']);
-        $transactions = $this->transactionRepository->getAll($request->user()->id, $filters);
-        return response()->json(['success' => true, 'data' => $transactions]);
+        $transactions = $this->transactionRepository->getAll(
+            userId: $request->user()->id,
+            withRelations: ['account', 'targetAccount', 'category'],
+            filter: [
+                'type' => $request->type,
+                'account_id' => $request->account_id,
+                'category_id' => $request->category_id,
+                'start_date' => $request->start_date,
+                'end_date' => $request->end_date
+            ],
+            search: $request->search,
+            sortOption: [
+                'orderCol' => $request->sort_by,
+                'orderDir' => $request->order_by
+            ],
+            paginateOption: [
+                'method' => 'paginate',
+                'length' => $request->limit ?? 15,
+                'page' => $request->page,
+            ],
+            reformat: function ($models) {
+                if ($models instanceof \Illuminate\Pagination\LengthAwarePaginator) {
+                    $models->getCollection()->transform(function ($row) {
+                        return new \App\Http\Resources\TransactionResource($row);
+                    });
+                    return $models;
+                }
+                
+                $models->transform(function ($row) {
+                    return new \App\Http\Resources\TransactionResource($row);
+                });
+                return $models;
+            }
+        );
+
+        return ResponseFormatter::success($transactions, 'Data berhasil ditampilkan');
     }
 
     public function store(Request $request)
@@ -34,13 +68,17 @@ class TransactionController extends Controller
         ]);
 
         $transaction = $this->transactionRepository->create($request->all(), $request->user()->id);
-        return response()->json(['success' => true, 'data' => $transaction]);
+        $transaction->load(['account', 'targetAccount', 'category']);
+        return ResponseFormatter::success(new \App\Http\Resources\TransactionResource($transaction), 'Data berhasil ditambahkan');
     }
 
     public function show(Request $request, $id)
     {
         $transaction = $this->transactionRepository->findByIdHash($id, ['account', 'targetAccount', 'category'], $request->user()->id);
-        return response()->json(['success' => true, 'data' => $transaction]);
+        if (!$transaction) {
+            return ResponseFormatter::error(400, 'Data tidak ditemukan');
+        }
+        return ResponseFormatter::success(new \App\Http\Resources\TransactionResource($transaction), 'Data berhasil ditampilkan');
     }
 
     public function update(Request $request, $id)
@@ -56,12 +94,13 @@ class TransactionController extends Controller
         ]);
 
         $transaction = $this->transactionRepository->update($id, $request->all(), $request->user()->id);
-        return response()->json(['success' => true, 'data' => $transaction]);
+        $transaction->load(['account', 'targetAccount', 'category']);
+        return ResponseFormatter::success(new \App\Http\Resources\TransactionResource($transaction), 'Data berhasil diperbarui');
     }
 
     public function destroy(Request $request, $id)
     {
         $this->transactionRepository->delete($id, $request->user()->id);
-        return response()->json(['success' => true, 'message' => 'Transaction deleted']);
+        return ResponseFormatter::success(null, 'Data berhasil dihapus');
     }
 }

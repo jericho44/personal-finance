@@ -117,33 +117,6 @@
                                             <span class="menu-title">User</span>
                                         </a>
                                     </div>
-                                    <div class="menu-item">
-                                        <a :class="`menu-link btn mx-5 btn-sm ${pageActive('a-m-transaction')}`"
-                                            @click="$router.push({ name: 'a-m-transaction' })" href="javascript:;">
-                                            <span class="menu-bullet">
-                                                <span class="bullet bullet-dot" />
-                                            </span>
-                                            <span class="menu-title">Transaksi</span>
-                                        </a>
-                                    </div>
-                                    <div class="menu-item">
-                                        <a :class="`menu-link btn mx-5 btn-sm ${pageActive('a-m-budget')}`"
-                                            @click="$router.push({ name: 'a-m-budget' })" href="javascript:;">
-                                            <span class="menu-bullet">
-                                                <span class="bullet bullet-dot" />
-                                            </span>
-                                            <span class="menu-title">Anggaran</span>
-                                        </a>
-                                    </div>
-                                    <div class="menu-item">
-                                        <a :class="`menu-link btn mx-5 btn-sm ${pageActive('a-m-account')}`"
-                                            @click="$router.push({ name: 'a-m-account' })" href="javascript:;">
-                                            <span class="menu-bullet">
-                                                <span class="bullet bullet-dot" />
-                                            </span>
-                                            <span class="menu-title">Akun</span>
-                                        </a>
-                                    </div>
                                 </div>
                             </div>
                             <div class="menu-item py-1"

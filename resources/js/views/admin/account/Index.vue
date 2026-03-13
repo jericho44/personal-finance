@@ -31,7 +31,7 @@
                                             <tr v-if="accounts.length === 0">
                                                 <td colspan="6" class="text-center">Belum ada data akun.</td>
                                             </tr>
-                                            <tr v-for="(account, index) in accounts" :key="account.id_hash">
+                                            <tr v-for="(account, index) in accounts" :key="account.idHash">
                                                 <td class="text-center">{{ index + 1 }}</td>
                                                 <td>
                                                     <div class="d-flex align-items-center">
@@ -63,7 +63,7 @@
                                                             <i class="fa fa-pen" />
                                                         </span>
                                                     </button>
-                                                    <button class="btn btn-icon btn-bg-light btn-active-color-danger btn-sm" @click="confirmDelete(account.id_hash)">
+                                                    <button class="btn btn-icon btn-bg-light btn-active-color-danger btn-sm" @click="confirmDelete(account.id)">
                                                         <span class="svg-icon svg-icon-danger">
                                                             <i class="fa fa-trash" />
                                                         </span>
@@ -174,7 +174,7 @@ const accounts = ref<IAccount[]>([]);
 const flag = ref<'insert' | 'edit'>('insert');
 
 const single = reactive({
-    id_hash: '' as string,
+    idHash: '' as string,
     name: '' as string,
     type: 'cash' as 'cash' | 'bank' | 'ewallet' | 'credit_card' | 'investment',
     balance: 0 as number,
@@ -219,7 +219,7 @@ function showModalAdd() {
 function edit(account: IAccount) {
     reset();
     flag.value = 'edit';
-    single.id_hash = account.id_hash;
+    single.idHash = account.idHash;
     single.name = account.name;
     single.type = account.type;
     single.balance = account.balance;
@@ -248,7 +248,7 @@ async function saveData() {
         if (flag.value === 'insert') {
             res = await accountStore.create(payload);
         } else {
-            res = await accountStore.update(single.id_hash, payload);
+            res = await accountStore.update(single.idHash, payload);
         }
 
         modalForm.value?.hide();
@@ -266,7 +266,7 @@ async function saveData() {
     }
 }
 
-async function confirmDelete(id_hash: string) {
+async function confirmDelete(idHash: string) {
     Swal.fire({
         title: 'Hapus Akun?',
         text: "Akun ini akan dihapus secara permanen.",
@@ -279,7 +279,7 @@ async function confirmDelete(id_hash: string) {
         if (result.isConfirmed) {
             try {
                 loaderShow();
-                await accountStore.destroy(id_hash);
+                await accountStore.destroy(idHash);
                 toast.success('Akun berhasil dihapus');
                 fetchAccounts();
             } catch (error) {
@@ -294,7 +294,7 @@ async function confirmDelete(id_hash: string) {
 function reset() {
     v$.value.$reset();
     flag.value = 'insert';
-    single.id_hash = '';
+    single.idHash = '';
     single.name = '';
     single.type = 'cash';
     single.balance = 0;

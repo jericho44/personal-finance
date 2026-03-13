@@ -15,51 +15,46 @@
                                 </button>
                             </div>
                             <div class="card-body pt-5">
-                                <div class="table-responsive">
-                                    <table class="table align-middle table-row-dashed fs-6 gy-5 mt-5">
-                                        <thead>
-                                            <tr class="text-start text-muted fw-bolder fs-7 text-uppercase gs-0">
-                                                <th class="w-10px pe-2 text-center">No</th>
-                                                <th class="min-w-125px">Nama</th>
-                                                <th class="min-w-125px">Tipe</th>
-                                                <th class="min-w-125px">Warna / Ikon</th>
-                                                <th class="text-center min-w-100px">Opsi</th>
-                                            </tr>
-                                        </thead>
-                                        <tbody class="text-gray-600 fw-bold">
-                                            <tr v-if="categories.length === 0">
-                                                <td colspan="5" class="text-center">Belum ada data kategori.</td>
-                                            </tr>
-                                            <tr v-for="(category, index) in categories" :key="category.id_hash">
-                                                <td class="text-center">{{ index + 1 }}</td>
-                                                <td>{{ category.name }}</td>
-                                                <td>
-                                                    <span class="badge" :class="category.type === 'income' ? 'badge-light-success' : 'badge-light-danger'">
-                                                        {{ category.type === 'income' ? 'Pemasukan' : 'Pengeluaran' }}
+                                <DataTable :config="categoryStore.table" @get-data="categoryStore.getData"
+                                    @set-order="(order: string) => categoryStore.setOrder(order)"
+                                    @set-page="(page: number) => categoryStore.setCurrentPage(page)"
+                                    @set-search="(search: string) => categoryStore.setSearch(search)"
+                                    @set-show-per-page="(showPerPage: number) => categoryStore.setShowPerPage(showPerPage)"
+                                    @set-sort-by="(sortBy: string) => categoryStore.setSortBy(sortBy)"
+                                    :is-from-store="true">
+                                    <template v-slot:body>
+                                        <tr v-for="(category, index) in categoryStore.table.data" :key="category.idHash">
+                                            <td class="text-center">
+                                                {{ index + ((Number(categoryStore.table.showPerPage) *
+                                                    (Number(categoryStore.table.currentPage) - 1))) + 1 }}
+                                            </td>
+                                            <td>{{ category.name }}</td>
+                                            <td>
+                                                <span class="badge" :class="category.type === 'income' ? 'badge-light-success' : 'badge-light-danger'">
+                                                    {{ category.type === 'income' ? 'Pemasukan' : 'Pengeluaran' }}
+                                                </span>
+                                            </td>
+                                            <td>
+                                                <div class="d-flex align-items-center">
+                                                    <span class="badge badge-circle w-20px h-20px me-2" :style="{ backgroundColor: category.color || '#cccccc' }"></span>
+                                                    <i v-if="category.icon" :class="category.icon" class="fs-4"></i>
+                                                </div>
+                                            </td>
+                                            <td class="text-center">
+                                                <button class="btn btn-icon btn-bg-light btn-active-color-primary btn-sm me-1" @click="edit(category)">
+                                                    <span class="svg-icon svg-icon-primary">
+                                                        <i class="fa fa-pen" />
                                                     </span>
-                                                </td>
-                                                <td>
-                                                    <div class="d-flex align-items-center">
-                                                        <span class="badge badge-circle w-20px h-20px me-2" :style="{ backgroundColor: category.color || '#cccccc' }"></span>
-                                                        <i v-if="category.icon" :class="category.icon" class="fs-4"></i>
-                                                    </div>
-                                                </td>
-                                                <td class="text-center">
-                                                    <button class="btn btn-icon btn-bg-light btn-active-color-primary btn-sm me-1" @click="edit(category)">
-                                                        <span class="svg-icon svg-icon-primary">
-                                                            <i class="fa fa-pen" />
-                                                        </span>
-                                                    </button>
-                                                    <button class="btn btn-icon btn-bg-light btn-active-color-danger btn-sm" @click="confirmDelete(category.id_hash)">
-                                                        <span class="svg-icon svg-icon-danger">
-                                                            <i class="fa fa-trash" />
-                                                        </span>
-                                                    </button>
-                                                </td>
-                                            </tr>
-                                        </tbody>
-                                    </table>
-                                </div>
+                                                </button>
+                                                <button class="btn btn-icon btn-bg-light btn-active-color-danger btn-sm" @click="confirmDelete(category.id)">
+                                                    <span class="svg-icon svg-icon-danger">
+                                                        <i class="fa fa-trash" />
+                                                    </span>
+                                                </button>
+                                            </td>
+                                        </tr>
+                                    </template>
+                                </DataTable>
                             </div>
                         </div>
                     </div>
@@ -123,7 +118,7 @@ import { useCategoryStore } from "@stores/category";
 import { useVuelidate } from '@vuelidate/core';
 import { required } from '@vuelidate/validators';
 import Swal from 'sweetalert2';
-import { CustomModal, ModalBody, ModalFooter } from '@/components/main';
+import { CustomModal, ModalBody, ModalFooter, DataTable } from '@/components/main';
 import { axiosHandleError, initializeAppPlugins, loaderHide, loaderShow } from '@/plugins/global';
 import { ICategory, ICategoryPayload } from '@/types/category';
 import { toast } from 'vue3-toastify';
@@ -132,11 +127,10 @@ const categoryStore = useCategoryStore();
 
 const modalForm = ref<InstanceType<typeof CustomModal> | null>(null);
 
-const categories = ref<ICategory[]>([]);
 const flag = ref<'insert' | 'edit'>('insert');
 
 const single = reactive({
-    id_hash: '' as string,
+    idHash: '' as string,
     name: '' as string,
     type: 'expense' as 'income' | 'expense',
     color: '#3498db' as string,
@@ -154,20 +148,9 @@ const v$ = useVuelidate(rules, { single });
 
 onMounted(() => {
     initializeAppPlugins();
-    fetchCategories();
+    categoryStore.resetTable();
+    categoryStore.getData();
 });
-
-async function fetchCategories() {
-    try {
-        loaderShow();
-        const res = await categoryStore.getAll();
-        categories.value = res.data.data;
-    } catch (error) {
-        axiosHandleError(error);
-    } finally {
-        loaderHide();
-    }
-}
 
 function showModalAdd() {
     reset();
@@ -177,7 +160,7 @@ function showModalAdd() {
 function edit(category: ICategory) {
     reset();
     flag.value = 'edit';
-    single.id_hash = category.id_hash;
+    single.idHash = category.idHash;
     single.name = category.name;
     single.type = category.type;
     single.color = category.color || '#3498db';
@@ -202,7 +185,7 @@ async function saveData() {
         if (flag.value === 'insert') {
             res = await categoryStore.create(payload);
         } else {
-            res = await categoryStore.update(single.id_hash, payload);
+            res = await categoryStore.update(single.idHash, payload);
         }
 
         modalForm.value?.hide();
@@ -212,7 +195,7 @@ async function saveData() {
             text: 'Data kategori berhasil disimpan.'
         });
 
-        fetchCategories();
+        categoryStore.getData();
     } catch (error) {
         axiosHandleError(error);
     } finally {
@@ -220,7 +203,7 @@ async function saveData() {
     }
 }
 
-async function confirmDelete(id_hash: string) {
+async function confirmDelete(idHash: string) {
     Swal.fire({
         title: 'Hapus Kategori?',
         text: "Kategori ini akan dihapus secara permanen.",
@@ -233,9 +216,9 @@ async function confirmDelete(id_hash: string) {
         if (result.isConfirmed) {
             try {
                 loaderShow();
-                await categoryStore.destroy(id_hash);
+                await categoryStore.destroy(idHash);
                 toast.success('Kategori berhasil dihapus');
-                fetchCategories();
+                categoryStore.getData();
             } catch (error) {
                 axiosHandleError(error);
             } finally {
@@ -248,7 +231,7 @@ async function confirmDelete(id_hash: string) {
 function reset() {
     v$.value.$reset();
     flag.value = 'insert';
-    single.id_hash = '';
+    single.idHash = '';
     single.name = '';
     single.type = 'expense';
     single.color = '#3498db';

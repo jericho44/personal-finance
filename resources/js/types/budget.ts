@@ -1,16 +1,17 @@
 import { ICategory } from './category';
 
 export interface IBudget {
-    id_hash: string;
-    category_id: number;
+    id: string;
+    idHash: string;
+    categoryId: number;
     amount: number;
-    start_date: string;
-    end_date: string;
-    is_active: boolean;
+    startDate: string;
+    endDate: string;
+    isActive: boolean;
     notes?: string | null;
     category?: ICategory | null;
-    created_at?: string;
-    updated_at?: string;
+    createdAt?: string;
+    updatedAt?: string;
 }
 
 export interface IBudgetPayload {
@@ -27,5 +28,5 @@ export interface IBudgetProgress {
     spent: number;
     remaining: number;
     percentage: number;
-    is_over_budget: boolean;
+    isOverBudget: boolean;
 }

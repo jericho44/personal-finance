@@ -79,34 +79,37 @@ router.beforeEach((to, _from, next) => {
             });
         }
 
-        if (to.matched.some((record) => record.meta.specificRole)) {
-            if (
-                to.meta &&
-                Array.isArray(to.meta.specificRole) &&
-                to.meta.specificRole.length > 0
-            ) {
-                const hasAccess = to.meta.specificRole.filter(
-                    (e: string) => e == authorizationStore.data.role?.slug
-                );
-                if (hasAccess.length == 0) {
-                    return next("/403");
+        const checkRoleAccess = () => {
+            if (to.matched.some((record) => record.meta.specificRole)) {
+                if (
+                    to.meta &&
+                    Array.isArray(to.meta.specificRole) &&
+                    to.meta.specificRole.length > 0
+                ) {
+                    const hasAccess = to.meta.specificRole.filter(
+                        (e: string) => e == authorizationStore.data.role?.slug
+                    );
+                    if (hasAccess.length == 0) {
+                        return next("/403");
+                    }
                 }
             }
-        }
+            return next();
+        };
 
         if (authorizationStore.data.authorized === true) {
-            return next()
+            return checkRoleAccess();
         }
 
         if (authorizationStore.data.authorized === false) {
             authorizationStore.getProfile(true).then(() => {
-                return next()
+                return checkRoleAccess();
             }).catch(() => {
-                localStorage.clear()
+                localStorage.clear();
                 return next({
                     name: "login",
                 });
-            })
+            });
         }
     } else if (to.matched.some((record) => record.meta.guest)) {
         // Cek jika route untuk guest (tanpa login)

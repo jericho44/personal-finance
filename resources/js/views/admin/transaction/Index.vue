@@ -28,7 +28,7 @@
                                     <div class="col-md-3 mb-3">
                                         <select class="form-select" v-model="filters.account_id" @change="fetchTransactions">
                                             <option value="">Semua Akun</option>
-                                            <option v-for="account in accounts" :key="account.id_hash" :value="account.id">
+                                            <option v-for="account in accounts" :key="account.idHash" :value="account.id">
                                                 {{ account.name }} ({{ account.currency }})
                                             </option>
                                         </select>
@@ -36,7 +36,7 @@
                                     <div class="col-md-3 mb-3">
                                         <select class="form-select" v-model="filters.category_id" @change="fetchTransactions">
                                             <option value="">Semua Kategori</option>
-                                            <option v-for="category in categories" :key="category.id_hash" :value="category.id">
+                                            <option v-for="category in categories" :key="category.idHash" :value="category.id">
                                                 {{ category.name }} ({{ category.type }})
                                             </option>
                                         </select>
@@ -66,7 +66,7 @@
                                             <tr v-if="transactions.length === 0">
                                                 <td colspan="7" class="text-center">Belum ada data transaksi.</td>
                                             </tr>
-                                            <tr v-for="(transaction, index) in transactions" :key="transaction.id_hash">
+                                            <tr v-for="(transaction, index) in transactions" :key="transaction.idHash">
                                                 <td class="text-center">{{ index + 1 }}</td>
                                                 <td>{{ formatDate(transaction.date) }}</td>
                                                 <td>
@@ -96,7 +96,7 @@
                                                             <i class="fa fa-pen" />
                                                         </span>
                                                     </button>
-                                                    <button class="btn btn-icon btn-bg-light btn-active-color-danger btn-sm" @click="confirmDelete(transaction.id_hash)">
+                                                    <button class="btn btn-icon btn-bg-light btn-active-color-danger btn-sm" @click="confirmDelete(transaction.id)">
                                                         <span class="svg-icon svg-icon-danger">
                                                             <i class="fa fa-trash" />
                                                         </span>
@@ -156,7 +156,7 @@
                         </label>
                         <select class="form-select" v-model="single.account_id">
                             <option value="">Pilih Akun...</option>
-                            <option v-for="account in accounts" :key="account.id_hash" :value="account.id">
+                            <option v-for="account in accounts" :key="account.idHash" :value="account.id">
                                 {{ account.name }} ({{ account.currency }}) - Saldo: {{ account.balance }}
                             </option>
                         </select>
@@ -171,7 +171,7 @@
                         </label>
                         <select class="form-select" v-model="single.target_account_id">
                             <option value="">Pilih Akun Tujuan...</option>
-                            <option v-for="account in filteredTargetAccounts" :key="account.id_hash" :value="account.id">
+                            <option v-for="account in filteredTargetAccounts" :key="account.idHash" :value="account.id">
                                 {{ account.name }} ({{ account.currency }})
                             </option>
                         </select>
@@ -186,7 +186,7 @@
                         </label>
                         <select class="form-select" v-model="single.category_id">
                             <option value="">Tanpa Kategori</option>
-                            <option v-for="category in filteredCategories" :key="category.id_hash" :value="category.id">
+                            <option v-for="category in filteredCategories" :key="category.idHash" :value="category.id">
                                 {{ category.name }}
                             </option>
                         </select>
@@ -248,7 +248,7 @@ const filters = reactive<ITransactionFilters>({
 });
 
 const single = reactive({
-    id_hash: '' as string,
+    idHash: '' as string,
     account_id: '' as number | string,
     target_account_id: '' as number | string,
     category_id: '' as number | string,
@@ -290,7 +290,7 @@ async function fetchHelpers() {
     try {
         const [accRes, catRes] = await Promise.all([
             accountStore.getAll(),
-            categoryStore.getAll()
+            categoryStore.getAll(1, 0)
         ]);
         accounts.value = accRes.data.data;
         categories.value = catRes.data.data;
@@ -331,10 +331,10 @@ function showModalAdd() {
 function edit(item: ITransaction) {
     reset();
     flag.value = 'edit';
-    single.id_hash = item.id_hash;
-    single.account_id = item.account_id;
-    single.target_account_id = item.target_account_id || '';
-    single.category_id = item.category_id || '';
+    single.idHash = item.idHash;
+    single.account_id = item.accountId;
+    single.target_account_id = item.targetAccountId || '';
+    single.category_id = item.categoryId || '';
     single.type = item.type;
     single.amount = item.amount;
     single.date = dayjs(item.date).format('YYYY-MM-DD');
@@ -361,7 +361,7 @@ async function saveData() {
         if (flag.value === 'insert') {
             await transactionStore.create(payload);
         } else {
-            await transactionStore.update(single.id_hash, payload);
+            await transactionStore.update(single.idHash, payload);
         }
 
         modalForm.value?.hide();
@@ -380,7 +380,7 @@ async function saveData() {
     }
 }
 
-async function confirmDelete(id_hash: string) {
+async function confirmDelete(idHash: string) {
     Swal.fire({
         title: 'Hapus Transaksi?',
         text: "Transaksi ini akan dihapus permanen. Saldo akun mungkin akan disesuaikan kembali.",
@@ -393,7 +393,7 @@ async function confirmDelete(id_hash: string) {
         if (result.isConfirmed) {
             try {
                 loaderShow();
-                await transactionStore.destroy(id_hash);
+                await transactionStore.destroy(idHash);
                 toast.success('Transaksi berhasil dihapus');
                 fetchTransactions();
                 fetchHelpers(); // Update balances
@@ -409,7 +409,7 @@ async function confirmDelete(id_hash: string) {
 function reset() {
     v$.value.$reset();
     flag.value = 'insert';
-    single.id_hash = '';
+    single.idHash = '';
     single.account_id = '';
     single.target_account_id = '';
     single.category_id = '';

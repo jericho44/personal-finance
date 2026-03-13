@@ -2,10 +2,11 @@ import { IAccount } from './account';
 import { ICategory } from './category';
 
 export interface ITransaction {
-    id_hash: string;
-    account_id: number;
-    target_account_id?: number | null;
-    category_id?: number | null;
+    id: string;
+    idHash: string;
+    accountId: number;
+    targetAccountId?: number | null;
+    categoryId?: number | null;
     type: 'income' | 'expense' | 'transfer';
     amount: number;
     date: string;
@@ -13,8 +14,8 @@ export interface ITransaction {
     account?: IAccount;
     targetAccount?: IAccount | null;
     category?: ICategory | null;
-    created_at?: string;
-    updated_at?: string;
+    createdAt?: string;
+    updatedAt?: string;
 }
 
 export interface ITransactionPayload {
@@ -29,8 +30,8 @@ export interface ITransactionPayload {
 
 export interface ITransactionFilters {
     type?: 'all' | 'income' | 'expense' | 'transfer';
-    account_id?: number | null;
-    category_id?: number | null;
+    account_id?: number | string | null;
+    category_id?: number | string | null;
     start_date?: string | null;
     end_date?: string | null;
 }

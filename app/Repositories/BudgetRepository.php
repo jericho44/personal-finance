@@ -14,20 +14,65 @@ class BudgetRepository extends BaseRepository implements BudgetInterface
         parent::__construct($model);
     }
 
-    public function getAll(int $userId, array $filters = [])
-    {
-        $query = $this->model->with(['category'])
-            ->where('user_id', $userId);
+    public function getAll(
+        int $userId,
+        $select = [],
+        $withRelations = [],
+        $join = [],
+        $filter = [],
+        $where = null,
+        $search = null,
+        $sortOption = [],
+        $paginateOption = [],
+        $reformat = null
+    ) {
+        $model = $this->model->query();
 
-        if (isset($filters['is_active'])) {
-            $query->where('is_active', $filters['is_active']);
+        if (!empty($select)) {
+            $model->select($select);
+        }
+
+        $model->where('user_id', $userId);
+
+        if (! empty($withRelations)) {
+            $model->with($withRelations);
+        }
+
+        if (is_callable($where)) {
+            $model->where($where);
+        }
+
+        $model->when(strtolower($search), function ($query, $search) {
+            $query->whereHas('category', function($q) use ($search) {
+                $q->where(\Illuminate\Support\Facades\DB::raw('LOWER(categories.name)'), 'LIKE', "%{$search}%");
+            });
+        });
+
+        if ($this->filled($filter, 'is_active')) {
+            $model->where('is_active', collect([true, 1, '1', 'true'])->contains($filter['is_active']));
         }
         
-        if (isset($filters['category_id']) && $filters['category_id']) {
-            $query->where('category_id', $filters['category_id']);
+        if ($this->filled($filter, 'category_id')) {
+            $model->where('category_id', $filter['category_id']);
         }
 
-        return $query->orderBy('start_date', 'desc')->get();
+        $model->orderBy(
+            $this->input($sortOption, 'orderCol', 'start_date'),
+            strtolower($this->input($sortOption, 'orderDir', 'desc')) === 'asc' ? 'asc' : 'desc'
+        );
+
+        $length = $this->input($paginateOption, 'length', 15);
+        if (strtolower($this->input($paginateOption, 'method', 'paginate')) === 'paginate' && $length > 0) {
+            $model = $model->paginate($length, ['*'], 'page', $this->input($paginateOption, 'page'));
+        } else {
+            $model = $model->limit($length > 0 ? $length : null)->get();
+        }
+
+        if (is_callable($reformat)) {
+            $model = $reformat($model);
+        }
+
+        return $model;
     }
 
     public function findByIdHash($idHash, $withRelations = ['category'], int $userId = null)
@@ -96,7 +141,7 @@ class BudgetRepository extends BaseRepository implements BudgetInterface
                 'spent' => (float) $spent,
                 'remaining' => $budget->amount - $spent,
                 'percentage' => $budget->amount > 0 ? min(round(($spent / $budget->amount) * 100, 2), 100) : 0,
-                'is_over_budget' => $spent > $budget->amount
+                'isOverBudget' => $spent > $budget->amount
             ];
         }
 

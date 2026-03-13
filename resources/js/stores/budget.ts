@@ -4,8 +4,10 @@ import { IBudgetPayload } from '@src/types/budget';
 
 export const useBudgetStore = defineStore('budget', () => {
 
-    async function getAll() {
-        const response = await api().get('api/budgets');
+    async function getAll(filters: Record<string, any> = {}) {
+        const response = await api().get('api/budgets', {
+            params: { ...filters, limit: 0 }
+        });
         return response;
     }
 
