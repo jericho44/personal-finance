@@ -1,5 +1,5 @@
 <template>
-    <div class="vue-loader-energeek"
+    <div class="vue-loader-custom"
         :style="{ border: '5px solid', borderColor: props.color ? props.color : '#EE7B33' }" />
 </template>
 
@@ -14,17 +14,17 @@ const props = withDefaults(defineProps<LoaderProps>(), {
 </script>
 
 <style scoped>
-.vue-loader-energeek {
+.vue-loader-custom {
     border-radius: 50%;
     border-top: 5px solid #f2f2f2 !important;
     width: 40px;
     height: 40px;
-    -webkit-animation: spinLoaderEnergeek 2s linear infinite;
-    animation: spinLoaderEnergeek 2s linear infinite;
+    -webkit-animation: spinLoaderCustom 2s linear infinite;
+    animation: spinLoaderCustom 2s linear infinite;
 }
 
 /* Safari */
-@-webkit-keyframes spinLoaderEnergeek {
+@-webkit-keyframes spinLoaderCustom {
     0% {
         -webkit-transform: rotate(0deg);
     }
@@ -34,7 +34,7 @@ const props = withDefaults(defineProps<LoaderProps>(), {
     }
 }
 
-@keyframes spinLoaderEnergeek {
+@keyframes spinLoaderCustom {
     0% {
         transform: rotate(0deg);
     }

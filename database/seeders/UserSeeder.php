@@ -26,7 +26,7 @@ class UserSeeder extends Seeder
                     'role_id' => 1,
                     'name' => 'Developer',
                     'username' => 'developer',
-                    'email' => 'developer@energeek.co.id',
+                    'email' => 'developer@example.com',
                     'is_active' => true,
                 ],
                 [
@@ -34,7 +34,7 @@ class UserSeeder extends Seeder
                     'role_id' => 2,
                     'name' => 'Administrator',
                     'username' => 'administrator',
-                    'email' => 'administrator@energeek.co.id',
+                    'email' => 'administrator@example.com',
                     'is_active' => true,
                 ],
                 [
@@ -42,7 +42,7 @@ class UserSeeder extends Seeder
                     'role_id' => 3,
                     'name' => 'User',
                     'username' => 'user',
-                    'email' => 'user@energeek.co.id',
+                    'email' => 'user@example.com',
                     'is_active' => true,
                 ],
             ];

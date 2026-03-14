@@ -1,5 +1,5 @@
 <template>
-    <div class="vue-file-upload-energeek">
+    <div class="vue-file-upload-custom">
         <div ref="toastNotification" class="toast-file-upload">Ini adalah toast notification!</div>
         <div @click="fileInputRef?.click()" :style="{
             border: '2px dashed #009ef7',
@@ -180,14 +180,14 @@ function displayImage(file: File) {
 </script>
 
 <style scoped>
-.vue-file-upload-energeek .file-upload-list-file {
+.vue-file-upload-custom .file-upload-list-file {
     display: flex;
     justify-content: center;
     flex-wrap: wrap;
     gap: 15px;
 }
 
-.vue-file-upload-energeek .file-upload-preview-file {
+.vue-file-upload-custom .file-upload-preview-file {
     background: #fff !important;
     border-radius: 5px;
     width: 140px;
@@ -201,7 +201,7 @@ function displayImage(file: File) {
     padding: 10px;
 }
 
-.vue-file-upload-energeek .remove-file-upload-button {
+.vue-file-upload-custom .remove-file-upload-button {
     position: absolute;
     border-radius: 100px;
     width: 20px;
@@ -217,7 +217,7 @@ function displayImage(file: File) {
     right: -5px;
 }
 
-.vue-file-upload-energeek .file-upload-preview-name {
+.vue-file-upload-custom .file-upload-preview-name {
     font-size: 12px;
     white-space: nowrap;
     overflow: hidden;
@@ -225,17 +225,17 @@ function displayImage(file: File) {
     width: 130px;
 }
 
-.vue-file-upload-energeek .file-upload-preview-name:hover {
+.vue-file-upload-custom .file-upload-preview-name:hover {
     overflow: unset !important;
 }
 
-.vue-file-upload-energeek .file-upload-preview-size {
+.vue-file-upload-custom .file-upload-preview-size {
     font-size: 16px;
     font-weight: 600;
 }
 
 
-.vue-file-upload-energeek .toast-file-upload {
+.vue-file-upload-custom .toast-file-upload {
     visibility: hidden;
     min-width: 250px;
     background-color: red;
@@ -253,7 +253,7 @@ function displayImage(file: File) {
     transition: opacity 0.5s ease-in-out;
 }
 
-.vue-file-upload-energeek .toast-file-upload.show {
+.vue-file-upload-custom .toast-file-upload.show {
     visibility: visible;
     opacity: 1;
 }

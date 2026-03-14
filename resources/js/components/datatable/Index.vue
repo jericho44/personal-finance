@@ -1,5 +1,5 @@
 <template>
-    <div class="vue-datatable-energeek">
+    <div class="vue-datatable-custom">
         <div class="datatable-header">
             <div class="datatable-left-header">
                 <select :value="props.config.showPerPage" class="select-show-per-page" @change="changeShowPerPage"
@@ -321,7 +321,7 @@ const onClickLastPage = function () {
 </script>
 
 <style>
-.vue-datatable-energeek {
+.vue-datatable-custom {
     width: 100%;
 }
 
@@ -329,7 +329,7 @@ const onClickLastPage = function () {
     display: flex;
 }
 
-.vue-datatable-energeek .datatable-header {
+.vue-datatable-custom .datatable-header {
     display: flex;
     align-items: center;
     justify-content: space-between;
@@ -342,18 +342,18 @@ const onClickLastPage = function () {
 }
 
 @media(max-width:991px) {
-    .vue-datatable-energeek .datatable-header {
+    .vue-datatable-custom .datatable-header {
         display: block;
     }
 }
 
-.vue-datatable-energeek .datatable-body {
+.vue-datatable-custom .datatable-body {
     width: 100%;
     overflow-x: auto;
 }
 
-.vue-datatable-energeek .datatable-header .datatable-left-header,
-.vue-datatable-energeek .datatable-header .datatable-right-header {
+.vue-datatable-custom .datatable-header .datatable-left-header,
+.vue-datatable-custom .datatable-header .datatable-right-header {
     margin-bottom: 10px;
     display: flex;
     align-items: center;
@@ -370,13 +370,13 @@ const onClickLastPage = function () {
 
 }
 
-.vue-datatable-energeek .datatable-header .datatable-right-header {
+.vue-datatable-custom .datatable-header .datatable-right-header {
     justify-content: flex-end;
 }
 
 
 
-.vue-datatable-energeek .select-show-per-page {
+.vue-datatable-custom .select-show-per-page {
     display: block;
     width: 100%;
     padding: 7px 10px;
@@ -389,7 +389,7 @@ const onClickLastPage = function () {
     border-radius: 3px;
 }
 
-.vue-datatable-energeek .search-data {
+.vue-datatable-custom .search-data {
     display: block;
     padding: 5px 0;
     width: 100%;
@@ -402,7 +402,7 @@ const onClickLastPage = function () {
 }
 
 
-.vue-datatable-energeek .loader {
+.vue-datatable-custom .loader {
     border: 5px solid #f3f3f3;
     /* Light grey */
     border-top: 5px solid #0069B5;
@@ -425,7 +425,7 @@ const onClickLastPage = function () {
     }
 }
 
-.vue-datatable-energeek .datatable-footer {
+.vue-datatable-custom .datatable-footer {
     display: flex;
     margin-top: 15px;
     justify-content: space-between;
@@ -433,14 +433,14 @@ const onClickLastPage = function () {
     flex-wrap: wrap;
 }
 
-.vue-datatable-energeek .custom-vue-datatable-pagination {
+.vue-datatable-custom .custom-vue-datatable-pagination {
     display: flex;
     flex-wrap: wrap;
     list-style-type: none;
     margin-bottom: 15px;
 }
 
-.vue-datatable-energeek .custom-vue-datatable-pagination button {
+.vue-datatable-custom .custom-vue-datatable-pagination button {
     padding: 10px;
     background-color: transparent !important;
     color: inherit !important;
@@ -455,22 +455,22 @@ const onClickLastPage = function () {
     font-size: 11px !important;
 }
 
-.vue-datatable-energeek .custom-vue-datatable-pagination button.btn-prev-next-datatable {
+.vue-datatable-custom .custom-vue-datatable-pagination button.btn-prev-next-datatable {
     background: #F7F9FB !important;
     border-radius: 8px !important;
 }
 
-.vue-datatable-energeek .custom-vue-datatable-pagination button.active {
+.vue-datatable-custom .custom-vue-datatable-pagination button.active {
     background: #0069B5 !important;
     border-radius: 8px;
     color: #fff !important;
 }
 
-.vue-datatable-energeek .custom-vue-datatable {
+.vue-datatable-custom .custom-vue-datatable {
     width: 100%;
 }
 
-.vue-datatable-energeek .custom-vue-datatable thead tr th {
+.vue-datatable-custom .custom-vue-datatable thead tr th {
     border-bottom: 1px var(--kt-border-color) solid !important;
     padding: 15px 5px;
     color: var(--kt-text-gray-800);
@@ -480,7 +480,7 @@ const onClickLastPage = function () {
     cursor: pointer;
 }
 
-.vue-datatable-energeek .custom-vue-datatable tbody tr td {
+.vue-datatable-custom .custom-vue-datatable tbody tr td {
     border-bottom: 1px var(--kt-border-color) solid !important;
     padding: 15px 5px;
 }

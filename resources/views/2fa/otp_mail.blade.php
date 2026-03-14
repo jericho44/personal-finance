@@ -64,7 +64,7 @@
             Jangan berikan kode ini kepada siapa pun.</p>
 
         <div class="footer">
-            &copy; Energeek {{ date('Y') }}
+            &copy; Smart Portal {{ date('Y') }}
         </div>
     </div>
 </body>

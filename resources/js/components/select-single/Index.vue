@@ -1,5 +1,5 @@
 <template>
-    <div class="vue-select-single-energeek" ref="dropdownRef">
+    <div class="vue-select-single-custom" ref="dropdownRef">
         <div class="select-single-box" :style="{ background: disabled ? 'var(--kt-input-disabled-bg)' : 'var(--bs-body-bg)' }"
             @click="handleDropdownToggle">
             <div :style="{
@@ -158,13 +158,13 @@ onUnmounted(() => {
 </script>
 
 <style scoped>
-.vue-select-single-energeek {
+.vue-select-single-custom {
     position: relative;
     width: 100%;
     display: block;
 }
 
-.vue-select-single-energeek .select-single-box {
+.vue-select-single-custom .select-single-box {
     display: flex;
     align-items: center;
     justify-content: space-between;
@@ -177,7 +177,7 @@ onUnmounted(() => {
     font-size: 1.1rem;
 }
 
-.vue-select-single-energeek .select-single-option-search input {
+.vue-select-single-custom .select-single-option-search input {
     width: 100%;
     padding: 10px 0;
     margin-left: 10px;
@@ -186,7 +186,7 @@ onUnmounted(() => {
     font-size: 1.1rem;
 }
 
-.vue-select-single-energeek .select-single-option {
+.vue-select-single-custom .select-single-option {
     position: absolute;
     width: 100%;
     z-index: 99999;
@@ -196,12 +196,12 @@ onUnmounted(() => {
 
 }
 
-.vue-select-single-energeek .select-single-option-list {
+.vue-select-single-custom .select-single-option-list {
     max-height: 200px;
     overflow: auto;
 }
 
-.vue-select-single-energeek .select-single-option-list a {
+.vue-select-single-custom .select-single-option-list a {
     color: var(--kt-text-gray-800);
     padding: 10px;
     width: 100%;
@@ -211,30 +211,30 @@ onUnmounted(() => {
     cursor: pointer;
 }
 
-.vue-select-single-energeek .select-single-option-list a:hover,
-.vue-select-single-energeek .select-single-option-list a.active {
+.vue-select-single-custom .select-single-option-list a:hover,
+.vue-select-single-custom .select-single-option-list a.active {
     background-color: var(--kt-gray-100) !important;
 }
 
-.vue-select-single-energeek .select-single-option-list a.disabled {
+.vue-select-single-custom .select-single-option-list a.disabled {
     cursor: no-drop;
     background-color: var(--bs-body-bg) !important;
 }
 
-.vue-select-single-energeek .select-single-option-list a.no-select {
+.vue-select-single-custom .select-single-option-list a.no-select {
     cursor: no-drop;
     background-color: var(--kt-gray-100) !important;
 }
 
-.vue-select-single-energeek .select-single-remove-icon {
+.vue-select-single-custom .select-single-remove-icon {
     margin-right: 5px;
 }
 
-.vue-select-single-energeek .select-single-remove-icon svg path {
+.vue-select-single-custom .select-single-remove-icon svg path {
     fill: currentColor;
 }
 
-.vue-select-single-energeek .select-single-remove-icon:hover svg path {
+.vue-select-single-custom .select-single-remove-icon:hover svg path {
     fill: red;
 }
 
