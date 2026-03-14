@@ -602,7 +602,11 @@ class AuthController extends Controller
                     ->where('code', $request->input('otp'))
                     ->first();
 
-                if (! $userOtp || Carbon::parse($userOtp->expired_at)->isPast() || $userOtp->used_at) {
+                if (! $userOtp) {
+                    return ResponseFormatter::error(400, 'Kode OTP tidak valid');
+                }
+
+                if (Carbon::parse($userOtp->expired_at)->isPast() || $userOtp->used_at) {
                     return ResponseFormatter::error(400, 'Kode OTP tidak valid');
                 }
 
@@ -645,5 +649,22 @@ class AuthController extends Controller
         }
 
         return ResponseFormatter::success($this->createAuthLogin($request, $user), 'Verifikasi OTP berhasil');
+    }
+
+    public function generateTelegramLinkCode(Request $request)
+    {
+        $user = $request->user();
+        
+        if ($user->telegram_id) {
+            return ResponseFormatter::error(400, 'Akun sudah terhubung dengan Telegram');
+        }
+
+        $code = \Illuminate\Support\Str::random(10);
+        $user->update(['telegram_link_code' => $code]);
+
+        return ResponseFormatter::success([
+            'link_code' => $code,
+            'bot_username' => config('services.telegram.bot_username', 'SmartFinanceBot'),
+        ], 'Kode penghubung berhasil dibuat');
     }
 }

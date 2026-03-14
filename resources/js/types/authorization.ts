@@ -16,7 +16,8 @@ export interface IUserProfile {
     authorized: boolean,
     id: string,
     name: string,
-    role: IRole | null
+    role: IRole | null,
+    telegram_id?: string | null
 }
 
 export interface IChangePasswordPayload {

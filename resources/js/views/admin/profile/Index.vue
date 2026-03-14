@@ -92,6 +92,28 @@ async function changePassword() {
         loaderHide();
     }
 }
+
+const telegramLinkCode = ref('');
+const botUsername = ref('');
+
+async function generateTelegramCode() {
+    try {
+        loaderShow();
+        const res = await authorizationStore.generateTelegramCode();
+        if (res.status === 200) {
+            telegramLinkCode.value = res.data.data.link_code;
+            botUsername.value = res.data.data.bot_username;
+        }
+    } catch (error) {
+        axiosHandleError(error);
+    } finally {
+        loaderHide();
+    }
+}
+
+function openTelegram() {
+    window.open(`https://t.me/${botUsername.value}?start=${telegramLinkCode.value}`, '_blank');
+}
 </script>
 
 <template>
@@ -154,6 +176,37 @@ async function changePassword() {
                                 </div>
 
                                 <button class="btn btn-primary" @click="changePassword">Ubah Password</button>
+                            </div>
+                        </div>
+
+                        <hr />
+
+                        <!-- Telegram Integration -->
+                        <div class="row mt-10">
+                            <div class="col-12 text-center">
+                                <h4 class="mb-5">Integrasi Telegram</h4>
+                                <div v-if="authorizationStore.data.telegram_id" class="alert alert-success d-inline-block">
+                                    <i class="fa fa-check-circle me-2 text-success"></i>
+                                    Akun Anda sudah terhubung dengan Telegram.
+                                </div>
+                                <div v-else>
+                                    <p class="text-muted">Hubungkan akun Anda dengan Telegram untuk mencatat transaksi lebih cepat melalui chat.</p>
+                                    
+                                    <div v-if="telegramLinkCode" class="mt-5">
+                                        <div class="alert alert-info d-inline-block mb-3">
+                                            Kode Anda: <strong>{{ telegramLinkCode }}</strong>
+                                        </div>
+                                        <div>
+                                            <button class="btn btn-success" @click="openTelegram">
+                                                <i class="fab fa-telegram me-2"></i> Buka Telegram & Hubungkan
+                                            </button>
+                                        </div>
+                                        <p class="small text-muted mt-2">Atau kirim <code>/start {{ telegramLinkCode }}</code> ke @{{ botUsername }}</p>
+                                    </div>
+                                    <button v-else class="btn btn-outline btn-outline-info mt-3" @click="generateTelegramCode">
+                                        <i class="fab fa-telegram me-2"></i> Hubungkan Telegram
+                                    </button>
+                                </div>
                             </div>
                         </div>
 

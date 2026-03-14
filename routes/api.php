@@ -17,6 +17,9 @@ use Illuminate\Support\Facades\Route;
 Route::post('/auth/login', [Api\AuthController::class, 'login'])->middleware(['custom.throttle:10,1']);
 Route::post('/auth/register', [Api\AuthController::class, 'register'])->middleware(['custom.throttle:10,1']);
 
+// Telegram Webhook
+Route::post('/webhooks/telegram', [Api\Webhook\TelegramController::class, 'handle']);
+
 Route::get('/auth/2fa', [Api\AuthController::class, 'method2fa'])->middleware(['auth:2fa', 'custom.throttle:10,1']);
 Route::post('/auth/2fa/challenge', [Api\AuthController::class, 'challenge2fa'])->middleware(['auth:2fa', 'custom.throttle:10,1']);
 Route::post('/auth/2fa/verify', [Api\AuthController::class, 'verify2fa'])->middleware(['auth:2fa', 'custom.throttle:10,1']);
@@ -53,6 +56,7 @@ Route::group(['middleware' => 'auth:sanctum'], function () {
         Route::post('/add-email', [Api\AuthController::class, 'addEmail']);
         Route::post('/enable-google2fa', [Api\AuthController::class, 'enableGoogle2fa']);
         Route::get('/qrcode-url-google2fa', [Api\AuthController::class, 'qrcodeUrlGoogle2fa']);
+        Route::post('/generate-telegram-code', [Api\AuthController::class, 'generateTelegramLinkCode']);
     });
 
     // Categories

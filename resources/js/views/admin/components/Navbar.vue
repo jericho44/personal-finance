@@ -110,6 +110,11 @@
                                         <!--end::Menu separator-->
                                         <!--begin::Menu item-->
                                         <div class="menu-item px-5">
+                                            <router-link :to="{ name: 'a-profile' }" class="menu-link px-5">Profil Saya</router-link>
+                                        </div>
+                                        <!--end::Menu item-->
+                                        <!--begin::Menu item-->
+                                        <div class="menu-item px-5">
                                             <a href="javascript:;" @click="showModalResetPassword()"
                                                 class="menu-link px-5">Ubah Password</a>
                                         </div>

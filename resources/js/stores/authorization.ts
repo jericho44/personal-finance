@@ -20,6 +20,7 @@ export const useAuthorizationStore = defineStore('authorization', () => {
         data.id = payload?.id ?? '';
         data.name = payload?.name ?? '';
         data.role = payload?.role ?? null;
+        data.telegram_id = payload?.telegram_id ?? null;
     }
 
     async function logout() {
@@ -93,7 +94,12 @@ export const useAuthorizationStore = defineStore('authorization', () => {
         return response;
     }
 
-    return { data, setToken, logout, getProfile, login, register, changePassword, forgotPassword, resetPassword, updateProfile, enable2fa, get2faQrCode };
+    async function generateTelegramCode() {
+        const response = await api().post('api/auth/generate-telegram-code');
+        return response;
+    }
+
+    return { data, setToken, logout, getProfile, login, register, changePassword, forgotPassword, resetPassword, updateProfile, enable2fa, get2faQrCode, generateTelegramCode };
 
 });
 

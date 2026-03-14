@@ -29,6 +29,7 @@ class UserResource extends JsonResource
             'updated_at' => $this->updated_at,
             'deleted_at' => $this->deleted_at,
             'role' => new RoleResource($this->whenLoaded('role')),
+            'telegram_id' => $this->telegram_id,
         ];
     }
 }
