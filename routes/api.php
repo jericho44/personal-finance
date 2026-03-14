@@ -117,6 +117,12 @@ Route::group(['middleware' => 'auth:sanctum'], function () {
         Route::get('/category-expense', [Api\ReportController::class, 'categoryExpense']);
     });
 
+    // AI Financial Insights
+    Route::group(['prefix' => 'ai-insights'], function () {
+        Route::get('/', [Api\FinancialInsightController::class, 'getInsights']);
+        Route::delete('/cache', [Api\FinancialInsightController::class, 'clearCache']);
+    });
+
     // Dashboard
     Route::get('/dashboard', [Api\DashboardController::class, 'index']);
 

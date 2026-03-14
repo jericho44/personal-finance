@@ -23,6 +23,7 @@ The project leverages a robust modern stack and Clean Architecture principles vi
 -   🎯 **Financial Goals:** Set monetary goals with deadlines and actively track savings progress.
 -   📅 **Bills & Subscriptions:** Manage recurring payments, get visual reminders for upcoming due dates, and mark bills as paid.
 -   📈 **Reporting & Analytics:** View Monthly and Yearly cash flow summaries, category expense breakdowns via charts (ApexCharts), and export data to Excel files.
+-   🤖 **AI-Powered Financial Insights:** Intelligent spending analysis and personalized recommendations powered by the latest **Google Gemini 2.5 Flash**.
 -   🌓 **Dark Mode:** Full application support for light and dark themes with persistent preference.
 
 ## Getting Started

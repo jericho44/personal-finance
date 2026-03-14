@@ -13,6 +13,7 @@ import masterRoutes from "@routes/master";
 import authRoutes from "@routes/authorization";
 import profileRoutes from "@routes/profile";
 import financeRoutes from "@routes/finance";
+import aiRoutes from "@routes/ai";
 
 import { useAuthorizationStore } from '@src/stores/authorization';
 
@@ -37,6 +38,7 @@ const routes = [
             },
             ...profileRoutes,
             ...financeRoutes,
+            ...aiRoutes,
             ...masterRoutes,
         ]
     },

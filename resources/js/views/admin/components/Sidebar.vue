@@ -149,7 +149,15 @@
                                     <span class="menu-arrow" />
                                 </span>
                                 <div class="menu-sub menu-sub-accordion">
-
+                                    <div class="menu-item">
+                                        <a :class="`menu-link btn mx-5 btn-sm ${pageActive('a-ai-insights')}`"
+                                            @click="$router.push({ name: 'a-ai-insights' })" href="javascript:;">
+                                            <span class="menu-bullet">
+                                                <span class="bullet bullet-dot" />
+                                            </span>
+                                            <span class="menu-title">AI Insights</span>
+                                        </a>
+                                    </div>
                                     <div class="menu-item">
                                         <a :class="`menu-link btn mx-5 btn-sm ${pageActive('a-m-transaction')}`"
                                             @click="$router.push({ name: 'a-m-transaction' })" href="javascript:;">

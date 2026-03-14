@@ -56,3 +56,10 @@
 - Notification/Alert for Over-budgeting
 - Roll-over Budgeting
 - Compare Actual vs Planned Budget
+
+## 7. AI-Powered Financial Insights (Google Gemini 2.5 Flash)
+- **Intelligent Spending Analysis:** Automated insights into your monthly spending habits.
+- **Smart Recommendations:** 3+ actionable tips to save money based on current transactions.
+- **Financial Health Score:** A dynamic 1-10 rating of your fiscal wellness.
+- **Anomaly Detection:** Flags unusual spending or unexpected spikes.
+- **Automated Summaries:** Natural language overviews of your financial status.

@@ -86,9 +86,10 @@ async function login() {
 
                         <div class="card-body d-flex flex-column gap-10" style="font-size: 1.5rem;">
 
-                            <div class="text-center mt-16">
+                            <div class="text-center mt-10">
+                                <img :src="`${getAssetUrl()}icons/pwa-192x192.png`" alt="Logo" class="h-80px mb-5" style="border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.1);" />
                                 <h3 class="mb-2" style="font-size: 2.5rem;">
-                                    Selamat Datang
+                                    FinanceApp
                                 </h3>
                                 <div style="color: #7E8299; font-size: 1.35rem;">
                                     Masukkan username dan password

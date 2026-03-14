@@ -13,6 +13,7 @@
         "arlx/repository-generator": "^3.0",
         "askedio/laravel-soft-cascade": "^12.0",
         "darkaonline/l5-swagger": "^9.0",
+        "google-gemini-php/client": "^2.7",
         "guzzlehttp/guzzle": "^7.8",
         "intervention/image": "^3.11",
         "laravel/framework": "^12.0",
@@ -84,7 +85,8 @@
         "preferred-install": "dist",
         "sort-packages": true,
         "allow-plugins": {
-            "pestphp/pest-plugin": true
+            "pestphp/pest-plugin": true,
+            "php-http/discovery": true
         },
         "platform-check": false
     },

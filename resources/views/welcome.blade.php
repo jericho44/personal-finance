@@ -5,8 +5,14 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
 
-    <title>Admin Landing Page</title>
-    <link rel="icon" type="image/png" href="{{ asset('assets/extends/images/logo.png') }}">
+    <title>Personal Finance Tracker</title>
+    <meta name="theme-color" content="#ffffff">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="default">
+    <meta name="apple-mobile-web-app-title" content="FinanceApp">
+    
+    <link rel="apple-touch-icon" href="{{ asset('icons/pwa-192x192.png') }}">
+    <link rel="icon" type="image/png" href="{{ asset('icons/pwa-192x192.png') }}">
     <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Poppins:300,400,500,600,700" />
     <link href="{{ asset('assets/plugins/global/plugins.bundle.css') }}" rel="stylesheet" type="text/css" />
     <link href="{{ asset('assets/css/style.bundle.css') }}" rel="stylesheet" type="text/css" />

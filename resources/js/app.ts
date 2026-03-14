@@ -2,6 +2,10 @@ import { createApp } from 'vue'
 import MainApp from "@components/App.vue";
 import router from '@routes/index'
 import { createPinia } from 'pinia'
+import { registerSW } from 'virtual:pwa-register'
+
+// Register PWA Service Worker
+registerSW({ immediate: true })
 
 import 'vue3-toastify/dist/index.css';
 
