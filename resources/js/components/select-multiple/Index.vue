@@ -1,5 +1,5 @@
 <template>
-    <div class="vue-select-multiple-energeek" ref="dropdownRef">
+    <div class="vue-select-multiple-custom" ref="dropdownRef">
         <div class="select-multiple-box" :style="{ background: disabled ? 'var(--kt-input-disabled-bg)' : 'var(--bs-body-bg)' }"
             @click="handleDropdownToggle">
             <div v-if="hasValue(modelValue)" class="select-multiple-selected-value-group">
@@ -184,13 +184,13 @@ onUnmounted(() => {
 </script>
 
 <style scoped>
-.vue-select-multiple-energeek {
+.vue-select-multiple-custom {
     position: relative;
     width: 100%;
     display: block;
 }
 
-.vue-select-multiple-energeek .select-multiple-box {
+.vue-select-multiple-custom .select-multiple-box {
     display: flex;
     align-items: center;
     justify-content: space-between;
@@ -203,7 +203,7 @@ onUnmounted(() => {
     font-size: 1.1rem;
 }
 
-.vue-select-multiple-energeek .select-multiple-option-search input {
+.vue-select-multiple-custom .select-multiple-option-search input {
     width: 100%;
     padding: 10px 0;
     margin-left: 10px;
@@ -212,7 +212,7 @@ onUnmounted(() => {
     font-size: 1.1rem;
 }
 
-.vue-select-multiple-energeek .select-multiple-option {
+.vue-select-multiple-custom .select-multiple-option {
     position: absolute;
     width: 100%;
     z-index: 99999;
@@ -222,12 +222,12 @@ onUnmounted(() => {
 
 }
 
-.vue-select-multiple-energeek .select-multiple-option-list {
+.vue-select-multiple-custom .select-multiple-option-list {
     max-height: 200px;
     overflow: auto;
 }
 
-.vue-select-multiple-energeek .select-multiple-option-list a {
+.vue-select-multiple-custom .select-multiple-option-list a {
     color: var(--kt-text-gray-800);
     padding: 10px;
     width: 100%;
@@ -237,32 +237,32 @@ onUnmounted(() => {
     cursor: pointer;
 }
 
-.vue-select-multiple-energeek .select-multiple-option-list a:hover,
-.vue-select-multiple-energeek .select-multiple-option-list a.active {
+.vue-select-multiple-custom .select-multiple-option-list a:hover,
+.vue-select-multiple-custom .select-multiple-option-list a.active {
     background-color: var(--kt-gray-100) !important;
 }
 
-.vue-select-multiple-energeek .select-multiple-option-list a.disabled {
+.vue-select-multiple-custom .select-multiple-option-list a.disabled {
     cursor: no-drop;
     background-color: var(--bs-body-bg) !important;
 }
 
-.vue-select-multiple-energeek .select-multiple-option-list a.no-select {
+.vue-select-multiple-custom .select-multiple-option-list a.no-select {
     cursor: no-drop;
     background-color: var(--kt-gray-100) !important;
 }
 
-.vue-select-multiple-energeek .select-multiple-remove-icon {
+.vue-select-multiple-custom .select-multiple-remove-icon {
     margin-right: 5px;
 }
 
-.vue-select-multiple-energeek .select-multiple-remove-icon svg path,
-.vue-select-multiple-energeek .select-multiple-selected-value-group svg path {
+.vue-select-multiple-custom .select-multiple-remove-icon svg path,
+.vue-select-multiple-custom .select-multiple-selected-value-group svg path {
     fill: currentColor;
 }
 
-.vue-select-multiple-energeek .select-multiple-remove-icon:hover svg path,
-.vue-select-multiple-energeek .select-multiple-selected-value-group svg:hover path {
+.vue-select-multiple-custom .select-multiple-remove-icon:hover svg path,
+.vue-select-multiple-custom .select-multiple-selected-value-group svg:hover path {
     fill: red;
 }
 

@@ -73,7 +73,7 @@
         <p>Jika Anda tidak merasa menambahkan email ini, abaikan pesan ini.</p>
 
         <div class="footer">
-            &copy; Energeek {{ date('Y') }}
+            &copy; Smart Portal {{ date('Y') }}
         </div>
     </div>
 </body>

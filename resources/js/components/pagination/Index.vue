@@ -1,5 +1,5 @@
 <template>
-    <ul class="vue-pagination-energeek">
+    <ul class="vue-pagination-custom">
     <li>
       <button :disabled="isInFirstPage || totalData === 0" @click="onClickFirstPage">
         First
@@ -141,14 +141,14 @@
   </script>
   
   <style scoped>
-    .vue-pagination-energeek{
+    .vue-pagination-custom{
         display: flex;
         flex-wrap: wrap;
         list-style-type: none;
         margin-bottom: 15px;
     }
 
-    .vue-pagination-energeek  button {
+    .vue-pagination-custom  button {
         padding: 10px;
         background-color: #fff !important;
         border: 0 !important;
@@ -161,12 +161,12 @@
         height: 35px;
     }
 
-    .vue-pagination-energeek  button.btn-prev-next-pagination {
+    .vue-pagination-custom  button.btn-prev-next-pagination {
         background: #F7F9FB !important;
         border-radius: 8px !important;
     }
 
-    .vue-pagination-energeek button.active {
+    .vue-pagination-custom button.active {
         background: #5089C6 !important;
         border-radius: 8px;
         color: #fff !important;

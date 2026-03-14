@@ -1,5 +1,5 @@
 <template>
-    <div class="vue-file-preview-energeek">
+    <div class="vue-file-preview-custom">
         <div class="vue-file-preview-left">
             <div>
                 <div style="margin-top: 5px;" v-if="getIcon()">
@@ -92,49 +92,49 @@ const isImage = ["jpg", "jpeg", "png", "gif", "image/jpeg", "image/png", "image/
 </script>
 
 <style scoped>
-.vue-file-preview-energeek {
+.vue-file-preview-custom {
     display: flex;
     justify-content: space-between;
     align-items: center;
 }
 
-.vue-file-preview-energeek .vue-file-preview-left {
+.vue-file-preview-custom .vue-file-preview-left {
     display: flex;
     align-items: flex-start;
 }
 
-.vue-file-preview-energeek .vue-file-preview-left img {
+.vue-file-preview-custom .vue-file-preview-left img {
     margin-top: 5px;
 }
 
-.vue-file-preview-energeek .vue-file-preview-left .file-info-group {
+.vue-file-preview-custom .vue-file-preview-left .file-info-group {
     padding-left: 10px;
 }
 
-.vue-file-preview-energeek .vue-file-preview-left .file-info-group .file-name {
+.vue-file-preview-custom .vue-file-preview-left .file-info-group .file-name {
     font-size: 15px;
     color: black !important;
     text-decoration: none;
     font-weight: 500;
 }
 
-.vue-file-preview-energeek .vue-file-preview-left .file-info-group .file-size {
+.vue-file-preview-custom .vue-file-preview-left .file-info-group .file-size {
     color: #a1a5b7 !important;
     font-size: 14px !important;
 }
 
-.vue-file-preview-energeek .vue-file-preview-right svg path {
+.vue-file-preview-custom .vue-file-preview-right svg path {
     fill: red;
 }
 
-.vue-file-preview-energeek .vue-file-preview-right .remove-button {
+.vue-file-preview-custom .vue-file-preview-right .remove-button {
     padding: 0 !important;
     background: transparent !important;
     border: 0 !important;
     outline: none !important;
 }
 
-.vue-file-preview-energeek .modal-overlay-file-preview {
+.vue-file-preview-custom .modal-overlay-file-preview {
     position: fixed;
     top: 0;
     left: 0;
@@ -150,7 +150,7 @@ const isImage = ["jpg", "jpeg", "png", "gif", "image/jpeg", "image/png", "image/
     /* Ensure it's on top of other content */
 }
 
-.vue-file-preview-energeek .modal-content-file-preview {
+.vue-file-preview-custom .modal-content-file-preview {
     background-color: transparent;
     /* Modal content background */
     padding: 15px;
@@ -164,7 +164,7 @@ const isImage = ["jpg", "jpeg", "png", "gif", "image/jpeg", "image/png", "image/
 }
 
 /* Close button style */
-.vue-file-preview-energeek .close-button-file-preview {
+.vue-file-preview-custom .close-button-file-preview {
     position: absolute;
     top: 10px;
     right: 10px;
@@ -183,7 +183,7 @@ const isImage = ["jpg", "jpeg", "png", "gif", "image/jpeg", "image/png", "image/
 }
 
 @media(max-width:991px) {
-    .vue-file-preview-energeek .close-button-file-preview {
+    .vue-file-preview-custom .close-button-file-preview {
         font-size: 40px;
     }
 }

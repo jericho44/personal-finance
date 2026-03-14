@@ -1,11 +1,11 @@
 {
     "name": "laravel/laravel",
     "type": "project",
-    "description": "The skeleton application for the Laravel framework energeek.",
+    "description": "Personal Finance Tracker based on Laravel and Vue 3.",
     "keywords": [
         "framework",
         "laravel",
-        "energeek"
+        "personal-finance"
     ],
     "license": "MIT",
     "require": {
