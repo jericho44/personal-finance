@@ -1,563 +1,135 @@
-# Template Laravel API Project Energeek With Frontend VUE (TYPESCRIPT)
+# Smart Portal - Personal Finance Management
 
-A comprehensive Laravel 12 API template featuring authentication, 2FA, role-based access control, Firebase notifications, and Indonesian location data integration. Built with repository pattern architecture and comprehensive security features.
+A comprehensive, robust Personal Finance web application built with Laravel 12 (Backend) and Vue 3 + TypeScript (Frontend). This application enables users to manage accounts, track income and expenses, set financial budgets, monitor goals, get reminders for upcoming bills, and generate insightful financial reports.
 
-> **Laravel 12 Upgrade**: This template has been upgraded from Laravel 10 to Laravel 12. See [LARAVEL_12_UPGRADE_NOTES.md](LARAVEL_12_UPGRADE_NOTES.md) for complete upgrade details, breaking changes, and compatibility information.
+## System Architecture
 
-## Features
+The project leverages a robust modern stack and Clean Architecture principles via the Repository Pattern.
 
--   🔐 **Comprehensive Authentication**
+-   **Backend:** Laravel 12 API (PHP 8.2)
+-   **Frontend:** Vue 3 (Composition API) + Vue Router + Pinia + TypeScript
+-   **Styling:** Custom CSS + Bootstrap (Metronic structure)
+-   **Database:** PostgreSQL 14+
+-   **Build Tool:** Vite
+-   **Environment:** Docker / docker-compose (also supports Laragon/Local server)
 
-    -   Laravel Sanctum token-based authentication
-    -   Multi-factor authentication (Google Authenticator + Email OTP)
-    -   Email verification
-    -   Google OAuth integration via Laravel Socialite
+## Core Features
 
--   🛡️ **Security**
-
-    -   Role-based access control (RBAC)
-    -   Custom middleware for XSS protection, throttling, and X-Frame-Options
-    -   UUID support for public-facing IDs
-    -   Error logging with comprehensive tracking
-
--   📱 **Firebase Cloud Messaging**
-
-    -   Push notification support via Firebase HTTP v1 API
-    -   Notification queue management
-    -   User device token management
-
--   🗂️ **Repository Pattern**
-
-    -   Interface-based architecture - Clean separation of concerns - Dependency injection ready
-
--   🌏 **Indonesian Location Data**
-
-    -   Complete database of provinces, cities, districts, and villages
-    -   API endpoints for location selection
-    -   Via laravolt/indonesia package
-
--   📦 **File & Image Management**
-
-    -   File upload utilities
-    -   Image processing with Intervention Image v3
-    -   Protected storage endpoints
-
--   📝 **API Documentation**
-
-    -   Swagger/OpenAPI via L5-Swagger
-    -   Auto-generated documentation
-    -   Available at `/api/documentation`
-
--   🧪 **Quality Assurance**
-
-    -   Pest PHP v3.7+ testing framework
-    -   PHPUnit v11.5+ (required by Pest 3.7+)
-    -   Laravel Pint code formatting
-
-## Table of Contents
-
--   [Features](#features)
--   [Getting Started](#getting-started)
-    -   [Prerequisites](#prerequisites)
-    -   [PHP Modules](#php-modules)
-    -   [Installation](#installation)
--   [Running Development Server](#running-development-server)
--   [API Testing with Bruno](#api-testing-with-bruno)
--   [Development Workflow](#development-workflow)
--   [Environment Configuration](#environment-configuration)
--   [Testing](#testing)
--   [Production Deployment](#production-deployment)
+-   🔐 **Authentication & Security:** Secure login flow with Token-based auth (Sanctum), Role-Based Access Control (RBAC), password management, and 2FA capability.
+-   💰 **Account Management:** Track balances across multiple physical or digital accounts.
+-   🏷️ **Category Management:** Categorize income and expenses with customizable colors and icons.
+-   💸 **Transaction Tracking:** Record incomes, expenses, and inter-account transfers. Updates account balances seamlessly.
+-   📊 **Budgeting:** Set spending limits for specific categories and visually track progress (percentage bars).
+-   🎯 **Financial Goals:** Set monetary goals with deadlines and actively track savings progress.
+-   📅 **Bills & Subscriptions:** Manage recurring payments, get visual reminders for upcoming due dates, and mark bills as paid.
+-   📈 **Reporting & Analytics:** View Monthly and Yearly cash flow summaries, category expense breakdowns via charts (ApexCharts), and export data to Excel files.
+-   🌓 **Dark Mode:** Full application support for light and dark themes with persistent preference.
 
 ## Getting Started
 
-These instructions will get you a copy of the project up and running on your local machine for development and testing purposes.
-
 ### Prerequisites
 
-Required software to run this project:
+-   [Docker Desktop](https://www.docker.com/products/docker-desktop/) (Recommended for isolated environment)
+-   OR Local Environment:
+    -   PHP 8.2 (extensions: pdo_pgsql, redis, gd, mbstring, openssl, curl, zip)
+    -   Composer v2
+    -   Node.js v20 LTS & NPM
+    -   PostgreSQL 14+
 
--   [PHP v8.2.x](https://www.php.net/downloads.php) - Server-side programming language (locked to 8.2 for stability)
--   [Composer v2.x](https://getcomposer.org/download/) - PHP dependency manager
--   Minimal version [PostgreSQL 14.19](https://www.postgresql.org/download/) - Primary database
--   [Bruno](https://www.usebruno.com/) - API testing tool (recommended)
--   Minimal version [Node JS v20.19.5 LTS](https://nodejs.org/en/download/package-manager)
--   Minimal version [NPM v10.8.2](https://nodejs.org/en/download/package-manager)
--   [Redis](https://redis.io/download) - Optional but recommended for caching and sessions
+### Installation (Docker - Recommended)
 
-### PHP Modules
+This project contains specific configurations to run completely within Docker securely.
 
-The following PHP modules are required:
+1. **Clone the repository:**
+   ```bash
+   git clone git@gitlab.com:yourrepo/smart-portal.git
+   cd smart-portal
+   ```
 
--   bcmath
--   bz2
--   calendar
--   Core
--   ctype
--   curl
--   date
--   dom
--   exif
--   FFI
--   fileinfo
--   filter
--   ftp
--   gd
--   gettext
--   hash
--   iconv
--   igbinary
--   imagick
--   imap
--   intl
--   json
--   ldap
--   libxml
--   mbstring
--   openssl
--   pcntl
--   pcre
--   PDO
--   pdo_pgsql
--   pdo_sqlite
--   pgsql
--   Phar
--   posix
--   random
--   readline
--   redis
--   Reflection
--   session
--   shmop
--   SimpleXML
--   soap
--   sockets
--   sodium
--   SPL
--   sqlite3
--   standard
--   sysvmsg
--   sysvsem
--   sysvshm
--   tokenizer
--   xml
--   xmlreader
--   xmlwriter
--   xsl
--   Zend OPcache
--   zip
--   zlib
+2. **Setup Environment Variables:**
+   ```bash
+   cp .env.docker .env
+   # Or configure manually if needed
+   ```
 
-**Important PHP Extensions**: Ensure these critical extensions are enabled:
+3. **Build and start the Docker containers:**
+   ```bash
+   docker-compose up -d --build
+   ```
 
--   `pdo_pgsql` - PostgreSQL database support
--   `redis` - Redis caching support
--   `gd` or `imagick` - Image processing
--   `mbstring` - Multi-byte string support
--   `openssl` - Security and encryption
--   `curl` - HTTP requests
--   `zip` - Archive handling
+4. **Install backend dependencies:**
+   ```bash
+   docker-compose exec app composer install
+   ```
 
-### Installation
+5. **Generate API key & Run migrations:**
+   ```bash
+   docker-compose exec app php artisan key:generate
+   docker-compose exec app php artisan migrate --seed
+   ```
 
-A step-by-step guide on setting up the project locally Laravel with FE Vue.js (typescript)
+6. **Install frontend dependencies & build:**
+   ```bash
+   docker-compose exec node npm install
+   docker-compose exec node npm run build
+   ```
 
-1. Clone the repository.
+The application will be accessible at `http://localhost:8000`.
 
-via ssh
+### Installation (Local / Laragon)
 
-```bash
-git clone -b development-vue git@gitlab.com:energeek/template-laravel-vue-energeek.git
-```
+1. **Setup Environment Variables:**
+   ```bash
+   cp .env.local .env
+   ```
+   *Edit `.env` to match your local PostgreSQL configuration.*
 
-via https
+2. **Install Dependencies:**
+   ```bash
+   composer install
+   npm install
+   ```
 
-```bash
-git clone -b development-vue https://gitlab.com/energeek/template-laravel-vue-energeek.git
-```
+3. **Database Setup:**
+   ```bash
+   php artisan key:generate
+   php artisan migrate --seed
+   ```
 
-2. Navigate into the directory.
+4. **Run Development Servers:**
+   ```bash
+   # Terminal 1: Laravel Backend
+   php artisan serve
 
-```bash
-cd template-api-laravel
-```
-
-3. Install the dependencies.
-
-```bash
-composer install
-```
-
-4. Copy file `.env.example` to `.env` and configure database settings, payment gateway settings, and any other configurations you need.
-
-```bash
-cp .env.example .env
-```
-
-5. Generate application key using this command.
-
-```bash
-php artisan key:generate
-```
-
-6. Running migration and seeder for initial data.
-
-```bash
-php artisan migrate --seed
-```
-
-7. Running migration to initiate data for province, city, district, village for Indonesia.
-
-```bash
-php artisan laravolt:indonesia:seed
-```
-
-## Running Development Server for Backend (Laravel)
-
-How to run the development server.
-
-1. Start the application using development environment.
-
-```bash
-php artisan serve
-```
-
-## Running Development Server for Frontend (Vite + Vue)
-
-How to run the development server.
-
-1. Ensure that Node.js is installed, then run the following command to install all required dependencies:
-
-```bash
-npm install
-```
-
-2. To launch the development server, including the frontend, use the following command:
-
-```bash
-npm run dev
-```
-
-## Running server Development Backend (Laravel) + Frontend (Vite + Vue) with Hot Reloading
-
-1. To run both the backend and frontend development servers with hot reloading, use the following command:
-
-```bash
-composer dev
-```
-
-The API will be available at `http://localhost:8000`
-
-### API Documentation
-
-Once the server is running, access the Swagger API documentation at:
-
-```
-http://localhost:8000/api/documentation
-```
-
-## API Testing with Bruno
-
-### Setting up Bruno
-
-1. Download and install Bruno from [https://www.usebruno.com/](https://www.usebruno.com/)
-2. Create a new collection for this project
-3. Set the base URL to your Laravel application (e.g., `http://localhost:8000`)
-
-### Environment Configuration
-
-Create environments in Bruno for different stages:
-
-**Local Environment:**
-
--   Base URL: `http://localhost:8000`
--   API Prefix: `/api`
-
-**Development Environment:**
-
--   Base URL: `https://dev.yourapp.com`
--   API Prefix: `/api`
-
-### Authentication Setup
-
-1. **Login Request:**
-
-    - Method: POST
-    - URL: `{{baseUrl}}/api/auth/login`
-    - Body (JSON):
-
-    ```json
-    {
-        "username": "administrator",
-        "password": "your_password"
-    }
-    ```
-
-2. **Set Authentication Token:**
-   After successful login, add the token to your collection's environment variables:
-
-    - Variable: `authToken`
-    - Value: `Bearer {{response.data.token.access_token}}`
-
-3. **Use in requests:**
-   Add to request headers:
-    ```
-    Authorization: {{authToken}}
-    ```
+   # Terminal 2: Vue Frontend (Hot module reloading)
+   npm run dev
+   ```
 
 ## Development Workflow
 
-### Code Quality
-
-Run code formatting and testing:
-
-```bash
-# Format code with Laravel Pint
-./vendor/bin/pint
-
-# Check code format without making changes
-./vendor/bin/pint --test
-
-# Run tests
-./vendor/bin/pest
-# or
-./vendor/bin/phpunit
-```
-
-### Database Management
-
-```bash
-# Create new migration
-php artisan make:migration create_example_table
-
-# Run migrations
-php artisan migrate
-
-# Rollback migrations
-php artisan migrate:rollback
-
-# Seed database
-php artisan db:seed
-
-# Fresh migration with seeding
-php artisan migrate:fresh --seed
-```
-
-### API Development Best Practices
-
-```bash
-# Generate API documentation
-php artisan l5-swagger:generate
-
-# Clear all caches
-php artisan cache:clear
-php artisan config:clear
-php artisan route:clear
-php artisan view:clear
-
-# Create new API controller
-php artisan make:controller Api/YourController
-
-# Create new model with migration
-php artisan make:model YourModel -m
-
-# Create repository and interface
-php artisan make:repository YourRepository
-```
-
-## Environment Configuration
-
-### Required Environment Variables
-
-Copy `.env.example` to `.env` and configure:
-
-```bash
-# Application
-APP_NAME="Your App Name"
-APP_ENV=local
-APP_KEY=base64:your_app_key_here
-APP_DEBUG=true
-APP_URL=http://localhost:8000
-
-# Database
-DB_CONNECTION=pgsql
-DB_HOST=127.0.0.1
-DB_PORT=5432
-DB_DATABASE=your_database_name
-DB_USERNAME=your_db_username
-DB_PASSWORD=your_db_password
-
-# Redis (for caching and sessions)
-REDIS_HOST=127.0.0.1
-REDIS_PASSWORD=null
-REDIS_PORT=6379
-
-# Mail Configuration
-MAIL_MAILER=smtp
-MAIL_HOST=your_smtp_host
-MAIL_PORT=587
-MAIL_USERNAME=your_email
-MAIL_PASSWORD=your_password
-MAIL_ENCRYPTION=tls
-
-# Firebase (for push notifications)
-FIREBASE_CREDENTIALS=path/to/firebase/credentials.json
-```
-
-## Testing
-
-### Running Tests
-
-```bash
-# Run all tests
-./vendor/bin/pest
-
-# Run specific test file
-./vendor/bin/pest tests/Feature/AuthTest.php
-
-# Run tests with coverage
-./vendor/bin/pest --coverage
-
-# Run tests in parallel
-./vendor/bin/pest --parallel
-```
-
-### Test Database
-
-Configure separate test database in `phpunit.xml`:
-
-```xml
-<env name="DB_CONNECTION" value="pgsql"/>
-<env name="DB_DATABASE" value="your_test_database"/>
-```
-
-## Known Issues & Cleanup
-
-### Files to Remove
-
-Before using this template in production, remove or address these files:
-
-1. **Backup files** (delete immediately):
-
-    ```bash
-    rm -f .gitlab-ci.yml.backup-*.delete
+-   **Environment Switching:** You can use the `switch-env.ps1` script to quickly flip `.env` and `vite.config.ts` between `local` and `docker`.
+    ```powershell
+    # Windows PowerShell
+    .\switch-env.ps1 local
+    .\switch-env.ps1 docker
     ```
 
-2. **Test/Example endpoints** in `routes/api.php`:
-
-    - All `/api/test-*` routes should be removed or gated behind `APP_DEBUG=true`
-    - Example controllers in `app/Http/Controllers/Api/Example*.php`
-    - `ForceErrorController.php` (testing only)
-
-3. **Stale documentation**:
-    - `TODOS.md` - Contains incomplete tasks
-
-### Security Warnings
-
-⚠️ **CRITICAL**: Ensure `.env` file is never committed to version control
-
--   Check: `git ls-files | grep "\.env$"`
--   If found: `git rm --cached .env`
-
-⚠️ Firebase credentials should be stored securely and never committed
-
-⚠️ Review `DB_PORT=5433` in your `.env` (PostgreSQL default is 5432)
-
-## Troubleshooting
-
-### Common Issues
-
-1. **Permission denied errors:**
-
-    ```bash
-    cd {folder_project_name}
-    sudo chown -R www-data:www-data storage/ bootstrap/cache/
-    sudo chmod 775 -R storage/ bootstrap/cache/
-    sudo find storage bootstrap/cache -type d -exec chmod 775 {} \;
-    sudo find storage bootstrap/cache -type f -exec chmod 664 {} \;
-    sudo chmod g+s storage bootstrap/cache
-    ```
-
-2. **Database connection issues:**
-
-    - Ensure PostgreSQL is running
-    - Check database credentials in `.env`
-    - Verify database exists
-
-3. **Node.js module issues:**
-
-    ```bash
-    cd {folder_project_name}
-    rm -rf node_modules/
-    npm install
-    ```
-
-4. **Composer issues:**
-
-    ```bash
-    cd {folder_project_name}
-    composer clear-cache
-    rm -rf vendor/
-    composer install
-    ```
+-   **Frontend Changes:** When making changes to Vue components, use `npm run dev` for real-time updates. Run `npm run build` before committing to build production assets.
 
 ## Production Deployment
 
 ### Pre-deployment Checklist
-
 -   [ ] Set `APP_ENV=production`
 -   [ ] Set `APP_DEBUG=false`
--   [ ] Configure proper database credentials
--   [ ] Set up SSL certificates
--   [ ] Configure web server (Nginx/Apache)
--   [ ] Set up process manager (PM2/Supervisor)
--   [ ] Configure logging and monitoring
--   [ ] Set up backup strategies
+-   [ ] Configure production database credentials
+-   [ ] Build frontend assets (`npm run build`)
+-   [ ] Optimize Laravel:
+    ```bash
+    php artisan config:cache
+    php artisan route:cache
+    php artisan view:cache
+    ```
 
-### Build Commands FOR PRODUCTION ONLY
+## Licensing
 
-```bash
-# Install dependencies (production)
-composer install --no-dev --optimize-autoloader
-
-# Optimize Laravel after config credential in .env
-php artisan config:cache
-php artisan route:cache
-php artisan view:cache
-
-# Run migrations
-php artisan migrate --force
-
-# Run seeder if needed
-
-# Install Frontend things
-npm install
-npm run build
-
-# Generate API documentation if needed
-php artisan l5-swagger:generate
-```
-
-### Web Server Configuration
-
-**Nginx configuration example:**
-
-```nginx
-server {
-    listen 80;
-    server_name yourdomain.com;
-    root /var/www/html/public;
-
-    index index.php;
-
-    location / {
-        try_files $uri $uri/ /index.php?$query_string;
-    }
-
-    location ~ \.php$ {
-        fastcgi_pass unix:/var/run/php/php8.2-fpm.sock;
-        fastcgi_index index.php;
-        fastcgi_param SCRIPT_FILENAME $realpath_root$fastcgi_script_name;
-        include fastcgi_params;
-    }
-}
-```
+This project is licensed under the MIT License.
