@@ -151,7 +151,7 @@ export function loaderHide(): void {
 }
 
 export function axiosInstance(isFormData = false): AxiosInstance {
-    const token = localStorage.getItem('travel_token');
+    const token = localStorage.getItem('lp_token');
     const headers = {
         Authorization: token ? `Bearer ${token}` : '',
         'Content-Type': isFormData ? 'multipart/form-data' : 'application/json',
