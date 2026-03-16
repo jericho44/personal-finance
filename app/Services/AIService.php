@@ -29,7 +29,8 @@ class AIService
         $prompt = $this->buildInsightPrompt($transactions, $budgets);
 
         try {
-            $response = \Illuminate\Support\Facades\Http::post($this->baseUrl . 'gemini-1.5-flash:generateContent?key=' . $this->apiKey, [
+            $response = \Illuminate\Support\Facades\Http::timeout(120)
+                ->post($this->baseUrl . 'gemini-2.5-flash:generateContent?key=' . $this->apiKey, [
                 'contents' => [
                     [
                         'parts' => [
@@ -83,6 +84,7 @@ Please analyze this data and provide:
 4. Flag any anomalies (unusual spending) if detected.
 
 FORMATTING: Use Markdown. Keep it professional, encouraging, and concise. Don't use the user's name. Use currency symbols appropriate for general context or just numbers.
+LANGUAGE: Answer in Indonesian (Bahasa Indonesia).
 
 TRANSACTIONS (Last 30 Days):
 {$transactionData}
@@ -103,8 +105,8 @@ Your Insights:
             ];
         }
 
-        $categories = \App\Models\Category::where('created_by', $userId)->get(['id', 'name']);
-        $accounts = \App\Models\Account::where('created_by', $userId)->get(['id', 'name']);
+        $categories = \App\Models\Category::where('user_id', $userId)->get(['id', 'name']);
+        $accounts = \App\Models\Account::where('user_id', $userId)->get(['id', 'name']);
 
         $prompt = $this->buildTransactionParserPrompt($text, $categories->toArray(), $accounts->toArray());
 

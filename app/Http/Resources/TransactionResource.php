@@ -16,10 +16,11 @@ class TransactionResource extends JsonResource
     {
         return [
             "id" => $this->id_hash,
+            "id_int" => $this->id,
             "idHash" => $this->id_hash,
-            "accountId" => $this->account_id,
-            "targetAccountId" => $this->target_account_id,
-            "categoryId" => $this->category_id,
+            "accountId" => $this->account?->id_hash,
+            "targetAccountId" => $this->targetAccount?->id_hash,
+            "categoryId" => $this->category?->id_hash,
             "type" => $this->type,
             "amount" => (float) $this->amount,
             "date" => $this->date,

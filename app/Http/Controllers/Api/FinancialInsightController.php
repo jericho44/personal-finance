@@ -35,7 +35,7 @@ class FinancialInsightController extends Controller
         $cacheKey = "user_insights_{$userId}";
 
         // Try to get from cache first (Gemini quota & efficiency)
-        return Cache::remember($cacheKey, 60 * 24, function () use ($userId) {
+        return Cache::remember($cacheKey, 60 * 1, function () use ($userId) {
 
             // 1. Get transactions for last 30 days
             $transactions = $this->transactionRepository->getAll(

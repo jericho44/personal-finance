@@ -4,9 +4,9 @@ import { ICategory } from './category';
 export interface ITransaction {
     id: string;
     idHash: string;
-    accountId: number;
-    targetAccountId?: number | null;
-    categoryId?: number | null;
+    accountId: number | string | null;
+    targetAccountId?: number | string | null;
+    categoryId?: number | string | null;
     type: 'income' | 'expense' | 'transfer';
     amount: number;
     date: string;
@@ -19,9 +19,9 @@ export interface ITransaction {
 }
 
 export interface ITransactionPayload {
-    account_id: number;
-    target_account_id?: number | null;
-    category_id?: number | null;
+    account_id: number | string | null;
+    target_account_id?: number | string | null;
+    category_id?: number | string | null;
     type: 'income' | 'expense' | 'transfer';
     amount: number;
     date: string;

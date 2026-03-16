@@ -1,5 +1,6 @@
 export interface IAccount {
     id: string;
+    id_int?: number;
     idHash: string;
     name: string;
     type: 'cash' | 'bank' | 'ewallet' | 'credit_card' | 'investment';

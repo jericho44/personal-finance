@@ -8,6 +8,7 @@ use Illuminate\Support\Facades\Http;
 use App\Models\User;
 use App\Services\AIService;
 use App\Interfaces\TransactionInterface;
+use App\Interfaces\BudgetInterface;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Cache;
 
@@ -15,12 +16,17 @@ class TelegramController extends Controller
 {
     protected $aiService;
     protected $transactionRepository;
+    protected $budgetRepository;
     protected $botToken;
 
-    public function __construct(AIService $aiService, TransactionInterface $transactionRepository)
-    {
+    public function __construct(
+        AIService $aiService, 
+        TransactionInterface $transactionRepository,
+        BudgetInterface $budgetRepository
+    ) {
         $this->aiService = $aiService;
         $this->transactionRepository = $transactionRepository;
+        $this->budgetRepository = $budgetRepository;
         $this->botToken = config('services.telegram.bot_token');
     }
 
@@ -161,12 +167,18 @@ class TelegramController extends Controller
         $isManual = str_starts_with($data, 'tx_m_') || $data === 'tx_cancel';
         $isCategorySetting = str_starts_with($data, 'tx_set_cat_');
         
-        if (!$pendingTx && !$isManual && !$isCategorySetting) {
+        if (!$pendingTx && !$isManual && !$isCategorySetting && !str_starts_with($data, 'cmd_')) {
             $this->editTelegramMessage($chatId, $messageId, "❌ Session expired or no pending transaction found.");
             return response()->json(['status' => 'ok']);
         }
 
-        if ($data === 'tx_save') {
+        if ($data === 'cmd_manual') {
+            $this->showManualTypeSelection($chatId, $messageId);
+        } elseif ($data === 'cmd_insight') {
+            $this->handleInsight($user, $chatId);
+        } elseif ($data === 'cmd_help') {
+            $this->handleCommand($user, $chatId, '/help');
+        } elseif ($data === 'tx_save') {
             try {
                 $transactionData = [
                     'account_id' => $pendingTx['account_id'],
@@ -189,7 +201,7 @@ class TelegramController extends Controller
             Cache::put($cacheKey, $pendingTx, 600);
             $this->editConfirmationMessage($chatId, $messageId, $pendingTx);
         } elseif ($data === 'tx_categories') {
-            $this->showCategorySelection($chatId, $messageId, $user->id, 'tx_set_cat_');
+            $this->showCategorySelection($chatId, $messageId, $user->id, 'tx_set_cat_', $pendingTx['type']);
         } elseif (str_starts_with($data, 'tx_set_cat_')) {
             $categoryId = str_replace('tx_set_cat_', '', $data);
             $pendingTx['category_id'] = $categoryId;
@@ -267,7 +279,10 @@ class TelegramController extends Controller
     }
     protected function showCategorySelection($chatId, $messageId, $userId, $prefix = 'tx_set_cat_', $typeFilter = null)
     {
-        $query = \App\Models\Category::where('created_by', $userId);
+        $query = \App\Models\Category::where('user_id', $userId);
+        if ($typeFilter) {
+            $query->where('type', $typeFilter);
+        }
         $categories = $query->get();
         
         $buttons = [];
@@ -288,7 +303,7 @@ class TelegramController extends Controller
 
     protected function showAccountSelection($chatId, $messageId, $userId, $prefix = 'tx_m_acc_')
     {
-        $accounts = \App\Models\Account::where('created_by', $userId)->get();
+        $accounts = \App\Models\Account::where('user_id', $userId)->get();
         
         $buttons = [];
         $row = [];
@@ -355,6 +370,41 @@ class TelegramController extends Controller
         return response()->json(['status' => 'ok']);
     }
 
+    protected function handleInsight($user, $chatId)
+    {
+        $this->sendTelegramAction($chatId, 'typing');
+        
+        $msg = "🔍 *Analyzing your finances...*\n";
+        $msg .= "This usually takes about 30-60 seconds. I'll send you the results as soon as they are ready! ⏳";
+        
+        $this->sendTelegramMessage($chatId, $msg, 'Markdown');
+
+        // Dispatch background job to avoid webhook timeout
+        \App\Jobs\ProcessTelegramInsight::dispatch($user->id, $chatId);
+
+        return response()->json(['status' => 'ok']);
+    }
+
+    protected function showMenu($chatId)
+    {
+        $keyboard = [
+            'inline_keyboard' => [
+                [
+                    ['text' => '📝 Manual Entry', 'callback_data' => 'cmd_manual'],
+                    ['text' => '📊 AI Insight', 'callback_data' => 'cmd_insight'],
+                ],
+                [
+                    ['text' => '❓ Help Guide', 'callback_data' => 'cmd_help'],
+                    ['text' => '❌ Cancel Entry', 'callback_data' => 'tx_cancel'],
+                ]
+            ]
+        ];
+
+        $msg = "🛠 *Main Menu*\nSelect an action from the buttons below:";
+        $this->sendTelegramMessage($chatId, $msg, 'Markdown', $keyboard);
+        return response()->json(['status' => 'ok']);
+    }
+
     protected function editConfirmationMessage($chatId, $messageId, $data)
     {
         $amountStr = number_format($data['amount'], 0);
@@ -390,10 +440,14 @@ class TelegramController extends Controller
     protected function handleCommand($user, $chatId, $text)
     {
         if ($text === '/help' || $text === '/start') {
-            $msg = "Smart Finance Bot Guide 📝\n\n";
-            $msg .= "1. *Auto Entry*: Just type 'Lunch 50k' or 'Dinner 150k'. I will use AI to categorize it.\n";
-            $msg .= "2. *Manual Entry*: Type /manual to choose categories and type step-by-step.\n";
-            $msg .= "3. *Cancel Entry*: If you are in the middle of a manual entry, type /cancel.";
+            $msg = "Welcome to *Smart Finance Bot*! 🤖💰\n\n";
+            $msg .= "Managing your money has never been easier. Use the commands below or type /menu for buttons:\n\n";
+            $msg .= "🗣 *Auto Entry*: Just type like you talk!\n";
+            $msg .= "   Example: _'Lunch 50k'_ or _'Gaji 10jt'_\n\n";
+            $msg .= "📝 *Manual Entry*: /manual (Step-by-step)\n";
+            $msg .= "📊 *AI Insights*: /insight (Financial Analysis)\n";
+            $msg .= "🧭 *Commands Menu*: /menu (Show all buttons)\n";
+            $msg .= "❌ *Clear State*: /cancel";
             
             $this->sendTelegramMessage($chatId, $msg, 'Markdown');
         } elseif ($text === '/manual') {
@@ -406,6 +460,10 @@ class TelegramController extends Controller
                 ]
             ];
             $this->sendTelegramMessage($chatId, "📝 *Manual Entry Mode*\nSelect the transaction type:", 'Markdown', $keyboard);
+        } elseif ($text === '/insight') {
+            return $this->handleInsight($user, $chatId);
+        } elseif ($text === '/menu') {
+            return $this->showMenu($chatId);
         } elseif ($text === '/cancel') {
             Cache::forget("tx_manual_state_{$user->id}");
             Cache::forget("pending_tx_{$user->id}");

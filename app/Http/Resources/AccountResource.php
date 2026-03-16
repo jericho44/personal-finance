@@ -16,6 +16,7 @@ class AccountResource extends JsonResource
     {
         return [
             "id" => $this->id_hash,
+            "id_int" => $this->id,
             "idHash" => $this->id_hash,
             "name" => $this->name,
             "type" => $this->type,

@@ -8,11 +8,19 @@ use Illuminate\Http\Request;
 
 class TransactionController extends Controller
 {
-    private $transactionRepository;
 
-    public function __construct(\App\Interfaces\TransactionInterface $transactionRepository)
-    {
+    private $transactionRepository;
+    private $accountRepository;
+    private $categoryRepository;
+
+    public function __construct(
+        \App\Interfaces\TransactionInterface $transactionRepository,
+        \App\Interfaces\AccountInterface $accountRepository,
+        \App\Interfaces\CategoryInterface $categoryRepository
+    ) {
         $this->transactionRepository = $transactionRepository;
+        $this->accountRepository = $accountRepository;
+        $this->categoryRepository = $categoryRepository;
     }
 
     public function index(Request $request)
@@ -29,8 +37,8 @@ class TransactionController extends Controller
             ],
             search: $request->search,
             sortOption: [
-                'orderCol' => $request->sort_by,
-                'orderDir' => $request->order_by
+                'orderCol' => 'created_at',
+                'orderDir' => 'DESC'
             ],
             paginateOption: [
                 'method' => 'paginate',
@@ -44,7 +52,7 @@ class TransactionController extends Controller
                     });
                     return $models;
                 }
-                
+
                 $models->transform(function ($row) {
                     return new \App\Http\Resources\TransactionResource($row);
                 });
@@ -58,16 +66,53 @@ class TransactionController extends Controller
     public function store(Request $request)
     {
         $request->validate([
-            'account_id' => 'required|exists:accounts,id',
-            'target_account_id' => 'nullable|exists:accounts,id',
-            'category_id' => 'nullable|exists:categories,id',
+            'account_id' => 'required|exists:accounts,id_hash',
+            'target_account_id' => 'nullable|exists:accounts,id_hash',
+            'category_id' => 'nullable|exists:categories,id_hash',
             'type' => 'required|in:income,expense,transfer',
             'amount' => 'required|numeric|min:0.01',
             'date' => 'required|date',
             'notes' => 'nullable|string',
         ]);
 
-        $transaction = $this->transactionRepository->create($request->all(), $request->user()->id);
+        $account = $this->accountRepository->findByIdHash(
+            idHash: $request->account_id,
+            userId: $request->user()->id
+        );
+        if (!$account) {
+            return ResponseFormatter::error(400, 'Akun tidak ditemukan');
+        }
+
+        $targetAccount = null;
+        if ($request->target_account_id) {
+            $targetAccount = $this->accountRepository->findByIdHash(
+                idHash: $request->target_account_id,
+                userId: $request->user()->id
+            );
+            if (!$targetAccount) {
+                return ResponseFormatter::error(400, 'Akun tujuan tidak ditemukan');
+            }
+        }
+
+        $category = $this->categoryRepository->findByIdHash(
+            idHash: $request->category_id,
+            userId: $request->user()->id
+        );
+        if (!$category) {
+            return ResponseFormatter::error(400, 'Kategori tidak ditemukan');
+        }
+        $data = [
+            'account_id' => $account->id,
+            'target_account_id' => $targetAccount?->id,
+            'category_id' => $category->id,
+            'type' => $request->type,
+            'amount' => $request->amount,
+            'date' => $request->date,
+            'notes' => $request->notes,
+        ];
+
+
+        $transaction = $this->transactionRepository->create($data, $request->user()->id);
         $transaction->load(['account', 'targetAccount', 'category']);
         return ResponseFormatter::success(new \App\Http\Resources\TransactionResource($transaction), 'Data berhasil ditambahkan');
     }
@@ -84,16 +129,52 @@ class TransactionController extends Controller
     public function update(Request $request, $id)
     {
         $request->validate([
-            'account_id' => 'required|exists:accounts,id',
-            'target_account_id' => 'nullable|exists:accounts,id',
-            'category_id' => 'nullable|exists:categories,id',
+            'account_id' => 'required|exists:accounts,id_hash',
+            'target_account_id' => 'nullable|exists:accounts,id_hash',
+            'category_id' => 'nullable|exists:categories,id_hash',
             'type' => 'required|in:income,expense,transfer',
             'amount' => 'required|numeric|min:0.01',
             'date' => 'required|date',
             'notes' => 'nullable|string',
         ]);
 
-        $transaction = $this->transactionRepository->update($id, $request->all(), $request->user()->id);
+        $account = $this->accountRepository->findByIdHash(
+            idHash: $request->account_id,
+            userId: $request->user()->id
+        );
+        if (!$account) {
+            return ResponseFormatter::error(400, 'Akun tidak ditemukan');
+        }
+
+        $targetAccount = null;
+        if ($request->target_account_id) {
+            $targetAccount = $this->accountRepository->findByIdHash(
+                idHash: $request->target_account_id,
+                userId: $request->user()->id
+            );
+            if (!$targetAccount) {
+                return ResponseFormatter::error(400, 'Akun tujuan tidak ditemukan');
+            }
+        }
+
+        $category = $this->categoryRepository->findByIdHash(
+            idHash: $request->category_id,
+            userId: $request->user()->id
+        );
+        if (!$category) {
+            return ResponseFormatter::error(400, 'Kategori tidak ditemukan');
+        }
+        $data = [
+            'account_id' => $account->id,
+            'target_account_id' => $targetAccount?->id,
+            'category_id' => $category->id,
+            'type' => $request->type,
+            'amount' => $request->amount,
+            'date' => $request->date,
+            'notes' => $request->notes,
+        ];
+
+        $transaction = $this->transactionRepository->update($id, $data, $request->user()->id);
         $transaction->load(['account', 'targetAccount', 'category']);
         return ResponseFormatter::success(new \App\Http\Resources\TransactionResource($transaction), 'Data berhasil diperbarui');
     }

@@ -1,5 +1,6 @@
 export interface ICategory {
     id: string;
+    id_int?: number;
     id_hash: string;
     name: string;
     type: 'income' | 'expense';

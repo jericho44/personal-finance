@@ -249,9 +249,9 @@ const filters = reactive<ITransactionFilters>({
 
 const single = reactive({
     idHash: '' as string,
-    account_id: '' as number | string,
-    target_account_id: '' as number | string,
-    category_id: '' as number | string,
+    account_id: '' as number | string | null,
+    target_account_id: '' as number | string | null,
+    category_id: '' as number | string | null,
     type: 'expense' as 'income' | 'expense' | 'transfer',
     amount: '' as number | string,
     date: dayjs().format('YYYY-MM-DD') as string,
@@ -347,9 +347,9 @@ async function saveData() {
     if (v$.value.$invalid) return;
 
     const payload: ITransactionPayload = {
-        account_id: Number(single.account_id),
-        target_account_id: single.target_account_id ? Number(single.target_account_id) : null,
-        category_id: single.category_id ? Number(single.category_id) : null,
+        account_id: single.account_id || null,
+        target_account_id: single.target_account_id || null,
+        category_id: single.category_id || null,
         type: single.type,
         amount: Number(single.amount),
         date: single.date,
