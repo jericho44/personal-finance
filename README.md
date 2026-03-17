@@ -1,6 +1,6 @@
 # Smart Portal - Personal Finance Management
 
-A comprehensive, robust Personal Finance web application built with Laravel 12 (Backend) and Vue 3 + TypeScript (Frontend). This application enables users to manage accounts, track income and expenses, set financial budgets, monitor goals, get reminders for upcoming bills, and generate insightful financial reports.
+A comprehensive, robust Personal Finance web application built with **Laravel 12 (Backend)** and **Vue 3 + TypeScript (Frontend)**. This application enables users to manage accounts, track income and expenses, set financial budgets, monitor goals, get reminders for upcoming bills, and generate insightful financial reports.
 
 ## System Architecture
 
@@ -10,8 +10,7 @@ The project leverages a robust modern stack and Clean Architecture principles vi
 -   **Frontend:** Vue 3 (Composition API) + Vue Router + Pinia + TypeScript
 -   **Styling:** Custom CSS + Bootstrap (Metronic structure)
 -   **Database:** PostgreSQL 14+
--   **Build Tool:** Vite
--   **Environment:** Docker / docker-compose (also supports Laragon/Local server)
+-   **Service:** Docker / docker-compose (also supports Laragon/Local server)
 
 ## Core Features
 
@@ -19,12 +18,28 @@ The project leverages a robust modern stack and Clean Architecture principles vi
 -   💰 **Account Management:** Track balances across multiple physical or digital accounts.
 -   🏷️ **Category Management:** Categorize income and expenses with customizable colors and icons.
 -   💸 **Transaction Tracking:** Record incomes, expenses, and inter-account transfers. Updates account balances seamlessly.
--   📊 **Budgeting:** Set spending limits for specific categories and visually track progress (percentage bars).
+-   📊 **Budgeting:** Set spending limits for specific categories and visually track progress with color-coded percentage bars.
 -   🎯 **Financial Goals:** Set monetary goals with deadlines and actively track savings progress.
 -   📅 **Bills & Subscriptions:** Manage recurring payments, get visual reminders for upcoming due dates, and mark bills as paid.
--   📈 **Reporting & Analytics:** View Monthly and Yearly cash flow summaries, category expense breakdowns via charts (ApexCharts), and export data to Excel files.
--   🤖 **AI-Powered Financial Insights:** Intelligent spending analysis and personalized recommendations powered by the latest **Google Gemini 2.5 Flash**.
+-   📈 **Reporting & Analytics:** View Monthly and Yearly cash flow summaries, category expense breakdowns via charts (ApexCharts), and export reports to Excel.
+-   🤖 **AI-Powered Financial Insights:** Intelligent spending analysis and personalized recommendations powered by **Google Gemini 2.5 Flash**.
+-   💬 **Telegram Integration:** 
+    -   **Natural Language Entry:** Send messages like "Makan siang 50rb" or "Gaji 10jt" to automatically record transactions.
+    -   **Interactive Bot:** Manage transactions via interactive buttons, select categories, and verify data before saving.
+    -   **AI Analysis via Bot:** Request financial insights directly via the `/insight` command in Telegram.
 -   🌓 **Dark Mode:** Full application support for light and dark themes with persistent preference.
+
+## Tech Stack Details
+
+### Backend (Laravel 12)
+-   **Repository Pattern:** Decouples business logic from data access for better testability and maintenance.
+-   **Job Queues:** Asynchronous processing for AI insights and Telegram notifications to ensure fast response times.
+-   **API Documentation:** Integrated Swagger/OpenAPI support for endpoint testing.
+
+### Frontend (Vue 3)
+-   **Composition API:** Clean and reusable component logic.
+-   **TypeScript:** Strict typing for better developer experience and reduced runtime errors.
+-   **Vite:** Extremely fast HMR (Hot Module Replacement) and optimized production builds.
 
 ## Getting Started
 
@@ -50,8 +65,8 @@ This project contains specific configurations to run completely within Docker se
 2. **Setup Environment Variables:**
    ```bash
    cp .env.docker .env
-   # Or configure manually if needed
    ```
+   *Note: Ensure you configure `GEMINI_API_KEY` and `TELEGRAM_BOT_TOKEN` in your .env file.*
 
 3. **Build and start the Docker containers:**
    ```bash
@@ -72,7 +87,7 @@ This project contains specific configurations to run completely within Docker se
 6. **Install frontend dependencies & build:**
    ```bash
    docker-compose exec node npm install
-   docker-compose exec node npm run build
+   docker-compose exec node npm run dev (or run build for production)
    ```
 
 The application will be accessible at `http://localhost:8000`.
@@ -83,7 +98,7 @@ The application will be accessible at `http://localhost:8000`.
    ```bash
    cp .env.local .env
    ```
-   *Edit `.env` to match your local PostgreSQL configuration.*
+   *Edit `.env` to match your local PostgreSQL and Redis configuration.*
 
 2. **Install Dependencies:**
    ```bash
@@ -108,27 +123,16 @@ The application will be accessible at `http://localhost:8000`.
 
 ## Development Workflow
 
--   **Environment Switching:** You can use the `switch-env.ps1` script to quickly flip `.env` and `vite.config.ts` between `local` and `docker`.
+-   **Environment Switching:** Use the `switch-env.ps1` script to quickly flip `.env` and `vite.config.ts` between `local` and `docker`.
     ```powershell
     # Windows PowerShell
     .\switch-env.ps1 local
     .\switch-env.ps1 docker
     ```
 
--   **Frontend Changes:** When making changes to Vue components, use `npm run dev` for real-time updates. Run `npm run build` before committing to build production assets.
-
-## Production Deployment
-
-### Pre-deployment Checklist
--   [ ] Set `APP_ENV=production`
--   [ ] Set `APP_DEBUG=false`
--   [ ] Configure production database credentials
--   [ ] Build frontend assets (`npm run build`)
--   [ ] Optimize Laravel:
+-   **Telegram Webhook Setup:** To test Telegram locally, use `ngrok` or similar to expose your local port 8000 and set the webhook:
     ```bash
-    php artisan config:cache
-    php artisan route:cache
-    php artisan view:cache
+    curl https://api.telegram.org/bot<TOKEN>/setWebhook?url=https://<NGROK_URL>/api/webhooks/telegram
     ```
 
 ## Licensing
