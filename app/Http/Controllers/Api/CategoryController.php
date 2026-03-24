@@ -15,6 +15,19 @@ class CategoryController extends Controller
         $this->categoryRepository = $categoryRepository;
     }
 
+    /**
+     * @OA\Get(
+     *   tags={"Api|Category"},
+     *   path="/api/categories",
+     *   summary="Get list of categories",
+     *   security={{"authBearerToken":{}}},
+     *   @OA\Parameter(name="type", in="query", @OA\Schema(type="string", enum={"income", "expense"})),
+     *   @OA\Parameter(name="search", in="query", @OA\Schema(type="string")),
+     *   @OA\Parameter(name="limit", in="query", @OA\Schema(type="integer", default=15)),
+     *   @OA\Parameter(name="page", in="query", @OA\Schema(type="integer", default=1)),
+     *   @OA\Response(response="default", ref="#/components/responses/globalResponse")
+     * )
+     */
     public function index(Request $request)
     {
         $request->validate([
@@ -59,6 +72,25 @@ class CategoryController extends Controller
         return ResponseFormatter::success($categories, 'Data berhasil ditampilkan');
     }
 
+    /**
+     * @OA\Post(
+     *   tags={"Api|Category"},
+     *   path="/api/categories",
+     *   summary="Store new category",
+     *   security={{"authBearerToken":{}}},
+     *   @OA\RequestBody(
+     *     required=true,
+     *     @OA\JsonContent(
+     *       required={"name", "type"},
+     *       @OA\Property(property="name", type="string"),
+     *       @OA\Property(property="type", type="string", enum={"income", "expense"}),
+     *       @OA\Property(property="color", type="string"),
+     *       @OA\Property(property="icon", type="string")
+     *     )
+     *   ),
+     *   @OA\Response(response="default", ref="#/components/responses/globalResponse")
+     * )
+     */
     public function store(Request $request)
     {
         $request->validate([
@@ -72,6 +104,16 @@ class CategoryController extends Controller
         return ResponseFormatter::success(new \App\Http\Resources\CategoryResource($category), 'Data berhasil ditambahkan');
     }
 
+    /**
+     * @OA\Get(
+     *   tags={"Api|Category"},
+     *   path="/api/categories/{id}",
+     *   summary="Get category detail",
+     *   security={{"authBearerToken":{}}},
+     *   @OA\Parameter(name="id", in="path", required=true, @OA\Schema(type="string")),
+     *   @OA\Response(response="default", ref="#/components/responses/globalResponse")
+     * )
+     */
     public function show(Request $request, $id)
     {
         $category = $this->categoryRepository->findByIdHash($id, [], $request->user()->id);
@@ -81,6 +123,26 @@ class CategoryController extends Controller
         return ResponseFormatter::success(new \App\Http\Resources\CategoryResource($category), 'Data berhasil ditampilkan');
     }
 
+    /**
+     * @OA\Put(
+     *   tags={"Api|Category"},
+     *   path="/api/categories/{id}",
+     *   summary="Update category",
+     *   security={{"authBearerToken":{}}},
+     *   @OA\Parameter(name="id", in="path", required=true, @OA\Schema(type="string")),
+     *   @OA\RequestBody(
+     *     required=true,
+     *     @OA\JsonContent(
+     *       required={"name", "type"},
+     *       @OA\Property(property="name", type="string"),
+     *       @OA\Property(property="type", type="string", enum={"income", "expense"}),
+     *       @OA\Property(property="color", type="string"),
+     *       @OA\Property(property="icon", type="string")
+     *     )
+     *   ),
+     *   @OA\Response(response="default", ref="#/components/responses/globalResponse")
+     * )
+     */
     public function update(Request $request, $id)
     {
         $request->validate([
@@ -94,6 +156,16 @@ class CategoryController extends Controller
         return ResponseFormatter::success(new \App\Http\Resources\CategoryResource($category), 'Data berhasil diperbarui');
     }
 
+    /**
+     * @OA\Delete(
+     *   tags={"Api|Category"},
+     *   path="/api/categories/{id}",
+     *   summary="Delete category",
+     *   security={{"authBearerToken":{}}},
+     *   @OA\Parameter(name="id", in="path", required=true, @OA\Schema(type="string")),
+     *   @OA\Response(response="default", ref="#/components/responses/globalResponse")
+     * )
+     */
     public function destroy(Request $request, $id)
     {
         $this->categoryRepository->delete($id, $request->user()->id);

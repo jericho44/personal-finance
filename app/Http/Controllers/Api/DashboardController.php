@@ -7,6 +7,16 @@ use Illuminate\Http\Request;
 
 class DashboardController extends Controller
 {
+    /**
+     * @OA\Get(
+     *   tags={"Api|Dashboard"},
+     *   path="/api/dashboard",
+     *   summary="Get overview data for the mobile dashboard",
+     *   description="Returns net worth, current month summary, recent transactions, budget status, and goals progress.",
+     *   security={{"authBearerToken":{}}},
+     *   @OA\Response(response="default", ref="#/components/responses/globalResponse")
+     * )
+     */
     public function index(Request $request)
     {
         $userId = $request->user()->id;

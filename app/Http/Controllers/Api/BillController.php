@@ -15,6 +15,20 @@ class BillController extends Controller
         $this->billRepository = $billRepository;
     }
 
+    /**
+     * @OA\Get(
+     *   tags={"Api|Bill"},
+     *   path="/api/bills",
+     *   summary="Get list of recurring bills",
+     *   security={{"authBearerToken":{}}},
+     *   @OA\Parameter(name="category_id", in="query", @OA\Schema(type="string")),
+     *   @OA\Parameter(name="is_paid", in="query", @OA\Schema(type="boolean")),
+     *   @OA\Parameter(name="search", in="query", @OA\Schema(type="string")),
+     *   @OA\Parameter(name="limit", in="query", @OA\Schema(type="integer", default=15)),
+     *   @OA\Parameter(name="page", in="query", @OA\Schema(type="integer", default=1)),
+     *   @OA\Response(response="default", ref="#/components/responses/globalResponse")
+     * )
+     */
     public function index(Request $request)
     {
         $bills = $this->billRepository->getAll(
@@ -53,6 +67,28 @@ class BillController extends Controller
         return ResponseFormatter::success($bills, 'Data berhasil ditampilkan');
     }
 
+    /**
+     * @OA\Post(
+     *   tags={"Api|Bill"},
+     *   path="/api/bills",
+     *   summary="Store new bill",
+     *   security={{"authBearerToken":{}}},
+     *   @OA\RequestBody(
+     *     required=true,
+     *     @OA\JsonContent(
+     *       required={"name", "amount", "due_date", "frequency"},
+     *       @OA\Property(property="name", type="string", example="Spotify"),
+     *       @OA\Property(property="amount", type="number", format="float", example=55000),
+     *       @OA\Property(property="due_date", type="string", format="date", example="2024-03-25"),
+     *       @OA\Property(property="frequency", type="string", enum={"once", "daily", "weekly", "monthly", "yearly"}),
+     *       @OA\Property(property="is_paid", type="boolean", example=false),
+     *       @OA\Property(property="category_id", type="string", example="cat-123"),
+     *       @OA\Property(property="notes", type="string", nullable=true)
+     *     )
+     *   ),
+     *   @OA\Response(response="default", ref="#/components/responses/globalResponse")
+     * )
+     */
     public function store(Request $request)
     {
         $request->validate([
@@ -70,6 +106,16 @@ class BillController extends Controller
         return ResponseFormatter::success(new \App\Http\Resources\BillResource($bill), 'Data berhasil ditambahkan');
     }
 
+    /**
+     * @OA\Get(
+     *   tags={"Api|Bill"},
+     *   path="/api/bills/{id}",
+     *   summary="Get bill detail",
+     *   security={{"authBearerToken":{}}},
+     *   @OA\Parameter(name="id", in="path", required=true, @OA\Schema(type="string")),
+     *   @OA\Response(response="default", ref="#/components/responses/globalResponse")
+     * )
+     */
     public function show(Request $request, $id)
     {
         $bill = $this->billRepository->findByIdHash($id, ['category'], $request->user()->id);
@@ -79,6 +125,29 @@ class BillController extends Controller
         return ResponseFormatter::success(new \App\Http\Resources\BillResource($bill), 'Data berhasil ditampilkan');
     }
 
+    /**
+     * @OA\Put(
+     *   tags={"Api|Bill"},
+     *   path="/api/bills/{id}",
+     *   summary="Update bill",
+     *   security={{"authBearerToken":{}}},
+     *   @OA\Parameter(name="id", in="path", required=true, @OA\Schema(type="string")),
+     *   @OA\RequestBody(
+     *     required=true,
+     *     @OA\JsonContent(
+     *       required={"name", "amount", "due_date", "frequency"},
+     *       @OA\Property(property="name", type="string"),
+     *       @OA\Property(property="amount", type="number", format="float"),
+     *       @OA\Property(property="due_date", type="string", format="date"),
+     *       @OA\Property(property="frequency", type="string", enum={"once", "daily", "weekly", "monthly", "yearly"}),
+     *       @OA\Property(property="is_paid", type="boolean"),
+     *       @OA\Property(property="category_id", type="string"),
+     *       @OA\Property(property="notes", type="string", nullable=true)
+     *     )
+     *   ),
+     *   @OA\Response(response="default", ref="#/components/responses/globalResponse")
+     * )
+     */
     public function update(Request $request, $id)
     {
         $request->validate([
@@ -96,6 +165,16 @@ class BillController extends Controller
         return ResponseFormatter::success(new \App\Http\Resources\BillResource($bill), 'Data berhasil diperbarui');
     }
 
+    /**
+     * @OA\Delete(
+     *   tags={"Api|Bill"},
+     *   path="/api/bills/{id}",
+     *   summary="Delete bill",
+     *   security={{"authBearerToken":{}}},
+     *   @OA\Parameter(name="id", in="path", required=true, @OA\Schema(type="string")),
+     *   @OA\Response(response="default", ref="#/components/responses/globalResponse")
+     * )
+     */
     public function destroy(Request $request, $id)
     {
         $this->billRepository->delete($id, $request->user()->id);

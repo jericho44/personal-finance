@@ -27,6 +27,16 @@ class FinancialInsightController extends Controller
         $this->budgetRepository = $budgetRepository;
     }
 
+    /**
+     * @OA\Get(
+     *   tags={"Api|AI Insights"},
+     *   path="/api/ai-insights",
+     *   summary="Get AI-powered financial insights",
+     *   description="Analyzes transactions and budgets from the last 30 days using Google Gemini to provide summaries and recommendations.",
+     *   security={{"authBearerToken":{}}},
+     *   @OA\Response(response="default", ref="#/components/responses/globalResponse")
+     * )
+     */
     public function getInsights(Request $request)
     {
         $userId = auth()->id() ?? 1; // Fallback for testing, but should be authenticated
@@ -83,6 +93,15 @@ class FinancialInsightController extends Controller
             });
     }
 
+    /**
+     * @OA\Delete(
+     *   tags={"Api|AI Insights"},
+     *   path="/api/ai-insights/cache",
+     *   summary="Clear AI insights cache",
+     *   security={{"authBearerToken":{}}},
+     *   @OA\Response(response="default", ref="#/components/responses/globalResponse")
+     * )
+     */
     public function clearCache()
     {
         $userId = auth()->id();

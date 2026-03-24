@@ -123,11 +123,11 @@ class NotificationController extends Controller
     }
 
     /**
-     * @OA\Get(
+     * @OA\Post(
      *   tags={"Api|Notification"},
      *   path="/api/notification/read-all",
-     *   summary="Notification read all",
-     *
+     *   summary="Mark all notifications as read",
+     *   security={{"authBearerToken":{}}},
      *   @OA\Response(response="default", ref="#/components/responses/globalResponse")
      * )
      */
@@ -143,8 +143,8 @@ class NotificationController extends Controller
      * @OA\Get(
      *   tags={"Api|Notification"},
      *   path="/api/notification/unread-count",
-     *   summary="Unread notification count",
-     *
+     *   summary="Get unread notification count",
+     *   security={{"authBearerToken":{}}},
      *   @OA\Response(response="default", ref="#/components/responses/globalResponse")
      * )
      */

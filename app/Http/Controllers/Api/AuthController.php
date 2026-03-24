@@ -263,12 +263,13 @@ class AuthController extends Controller
     }
 
     /**
-     * Account Security Level
-     *
-     * Informasi tingkat keamanan akun
-     *
-     * @param  Illuminate\Http\Request  $request
-     * @return \Illuminate\Http\JsonResponse
+     * @OA\Get(
+     *   tags={"Api|Auth"},
+     *   path="/api/auth/account-security-level",
+     *   summary="Get Account Security Level Information",
+     *   security={{"authBearerToken":{}}},
+     *   @OA\Response(response="default", ref="#/components/responses/globalResponse")
+     * )
      */
     public function accountSecurityLevel(Request $request)
     {
@@ -314,12 +315,20 @@ class AuthController extends Controller
     }
 
     /**
-     * Add Email
-     *
-     * Menambahkan dan Verifikasi Email
-     *
-     * @param  Illuminate\Http\Request  $request
-     * @return \Illuminate\Http\JsonResponse
+     * @OA\Post(
+     *   tags={"Api|Auth"},
+     *   path="/api/auth/add-email",
+     *   summary="Add and Verify Email for 2FA",
+     *   security={{"authBearerToken":{}}},
+     *   @OA\RequestBody(
+     *     required=true,
+     *     @OA\JsonContent(
+     *       required={"email"},
+     *       @OA\Property(property="email", type="string", format="email", example="user@example.com")
+     *     )
+     *   ),
+     *   @OA\Response(response="default", ref="#/components/responses/globalResponse")
+     * )
      */
     public function addEmail(Request $request)
     {
@@ -388,12 +397,13 @@ class AuthController extends Controller
     }
 
     /**
-     * Add Google 2FA
-     *
-     * Menambahkan Google Authenticator (Google 2FA)
-     *
-     * @param  Illuminate\Http\Request  $request
-     * @return \Illuminate\Http\JsonResponse
+     * @OA\Post(
+     *   tags={"Api|Auth"},
+     *   path="/api/auth/enable-google2fa",
+     *   summary="Enable Google Authenticator (Google 2FA)",
+     *   security={{"authBearerToken":{}}},
+     *   @OA\Response(response="default", ref="#/components/responses/globalResponse")
+     * )
      */
     public function enableGoogle2fa(Request $request)
     {
@@ -445,12 +455,13 @@ class AuthController extends Controller
     }
 
     /**
-     * Qr Code Url Google 2FA
-     *
-     * Digunakan untuk scan ulang ketika Kode Google Authenticator belum ditambahkan atau terhapus
-     *
-     * @param  Illuminate\Http\Request  $request
-     * @return \Illuminate\Http\JsonResponse
+     * @OA\Get(
+     *   tags={"Api|Auth"},
+     *   path="/api/auth/qrcode-url-google2fa",
+     *   summary="Get QR Code URL for Google 2FA",
+     *   security={{"authBearerToken":{}}},
+     *   @OA\Response(response="default", ref="#/components/responses/globalResponse")
+     * )
      */
     public function qrcodeUrlGoogle2fa(Request $request)
     {
@@ -490,12 +501,13 @@ class AuthController extends Controller
     }
 
     /**
-     * 2FA Methods
-     *
-     * Metode yang digunakan untuk mendapatkan OTP
-     *
-     * @param  Illuminate\Http\Request  $request
-     * @return \Illuminate\Http\JsonResponse
+     * @OA\Get(
+     *   tags={"Api|Auth"},
+     *   path="/api/auth/2fa",
+     *   summary="Get available 2FA verification methods",
+     *   security={{"authBearerToken":{}}},
+     *   @OA\Response(response="default", ref="#/components/responses/globalResponse")
+     * )
      */
     public function method2fa(Request $request)
     {
@@ -523,12 +535,13 @@ class AuthController extends Controller
     }
 
     /**
-     * 2FA Challenge
-     *
-     * Mengirim OTP ke alamat email yang sudah diverifikasi
-     *
-     * @param  Illuminate\Http\Request  $request
-     * @return \Illuminate\Http\JsonResponse
+     * @OA\Post(
+     *   tags={"Api|Auth"},
+     *   path="/api/auth/2fa/challenge",
+     *   summary="Send OTP challenge (Email)",
+     *   security={{"authBearerToken":{}}},
+     *   @OA\Response(response="default", ref="#/components/responses/globalResponse")
+     * )
      */
     public function challenge2fa(Request $request)
     {
@@ -575,12 +588,21 @@ class AuthController extends Controller
     }
 
     /**
-     * 2FA Verify
-     *
-     * Verifikasi Kode OTP yang didapatkan dari Email atau Google Authenticator
-     *
-     * @param  Illuminate\Http\Request  $request
-     * @return \Illuminate\Http\JsonResponse
+     * @OA\Post(
+     *   tags={"Api|Auth"},
+     *   path="/api/auth/2fa/verify",
+     *   summary="Verify OTP code (Email or Google)",
+     *   security={{"authBearerToken":{}}},
+     *   @OA\RequestBody(
+     *     required=true,
+     *     @OA\JsonContent(
+     *       required={"type", "otp"},
+     *       @OA\Property(property="type", type="string", enum={"email", "google"}),
+     *       @OA\Property(property="otp", type="string", example="123456")
+     *     )
+     *   ),
+     *   @OA\Response(response="default", ref="#/components/responses/globalResponse")
+     * )
      */
     public function verify2fa(Request $request)
     {
@@ -651,6 +673,15 @@ class AuthController extends Controller
         return ResponseFormatter::success($this->createAuthLogin($request, $user), 'Verifikasi OTP berhasil');
     }
 
+    /**
+     * @OA\Post(
+     *   tags={"Api|Auth"},
+     *   path="/api/auth/generate-telegram-code",
+     *   summary="Generate linking code for Telegram bot",
+     *   security={{"authBearerToken":{}}},
+     *   @OA\Response(response="default", ref="#/components/responses/globalResponse")
+     * )
+     */
     public function generateTelegramLinkCode(Request $request)
     {
         $user = $request->user();

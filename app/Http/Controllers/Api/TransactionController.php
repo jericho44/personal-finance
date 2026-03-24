@@ -23,6 +23,23 @@ class TransactionController extends Controller
         $this->categoryRepository = $categoryRepository;
     }
 
+    /**
+     * @OA\Get(
+     *   tags={"Api|Transaction"},
+     *   path="/api/transactions",
+     *   summary="Get list of transactions",
+     *   security={{"authBearerToken":{}}},
+     *   @OA\Parameter(name="type", in="query", @OA\Schema(type="string", enum={"income", "expense", "transfer"})),
+     *   @OA\Parameter(name="account_id", in="query", @OA\Schema(type="string")),
+     *   @OA\Parameter(name="category_id", in="query", @OA\Schema(type="string")),
+     *   @OA\Parameter(name="start_date", in="query", @OA\Schema(type="string", format="date")),
+     *   @OA\Parameter(name="end_date", in="query", @OA\Schema(type="string", format="date")),
+     *   @OA\Parameter(name="search", in="query", @OA\Schema(type="string")),
+     *   @OA\Parameter(name="limit", in="query", @OA\Schema(type="integer", default=15)),
+     *   @OA\Parameter(name="page", in="query", @OA\Schema(type="integer", default=1)),
+     *   @OA\Response(response="default", ref="#/components/responses/globalResponse")
+     * )
+     */
     public function index(Request $request)
     {
         $transactions = $this->transactionRepository->getAll(
@@ -63,6 +80,28 @@ class TransactionController extends Controller
         return ResponseFormatter::success($transactions, 'Data berhasil ditampilkan');
     }
 
+    /**
+     * @OA\Post(
+     *   tags={"Api|Transaction"},
+     *   path="/api/transactions",
+     *   summary="Store new transaction",
+     *   security={{"authBearerToken":{}}},
+     *   @OA\RequestBody(
+     *     required=true,
+     *     @OA\JsonContent(
+     *       required={"account_id", "type", "amount", "date"},
+     *       @OA\Property(property="account_id", type="string", example="acc-123"),
+     *       @OA\Property(property="target_account_id", type="string", nullable=true, example="acc-456"),
+     *       @OA\Property(property="category_id", type="string", nullable=true, example="cat-123"),
+     *       @OA\Property(property="type", type="string", enum={"income", "expense", "transfer"}),
+     *       @OA\Property(property="amount", type="number", format="float", example=50000),
+     *       @OA\Property(property="date", type="string", format="date", example="2024-03-24"),
+     *       @OA\Property(property="notes", type="string", nullable=true)
+     *     )
+     *   ),
+     *   @OA\Response(response="default", ref="#/components/responses/globalResponse")
+     * )
+     */
     public function store(Request $request)
     {
         $request->validate([
@@ -117,6 +156,16 @@ class TransactionController extends Controller
         return ResponseFormatter::success(new \App\Http\Resources\TransactionResource($transaction), 'Data berhasil ditambahkan');
     }
 
+    /**
+     * @OA\Get(
+     *   tags={"Api|Transaction"},
+     *   path="/api/transactions/{id}",
+     *   summary="Get transaction detail",
+     *   security={{"authBearerToken":{}}},
+     *   @OA\Parameter(name="id", in="path", required=true, @OA\Schema(type="string")),
+     *   @OA\Response(response="default", ref="#/components/responses/globalResponse")
+     * )
+     */
     public function show(Request $request, $id)
     {
         $transaction = $this->transactionRepository->findByIdHash($id, ['account', 'targetAccount', 'category'], $request->user()->id);
@@ -126,6 +175,29 @@ class TransactionController extends Controller
         return ResponseFormatter::success(new \App\Http\Resources\TransactionResource($transaction), 'Data berhasil ditampilkan');
     }
 
+    /**
+     * @OA\Put(
+     *   tags={"Api|Transaction"},
+     *   path="/api/transactions/{id}",
+     *   summary="Update transaction",
+     *   security={{"authBearerToken":{}}},
+     *   @OA\Parameter(name="id", in="path", required=true, @OA\Schema(type="string")),
+     *   @OA\RequestBody(
+     *     required=true,
+     *     @OA\JsonContent(
+     *       required={"account_id", "type", "amount", "date"},
+     *       @OA\Property(property="account_id", type="string"),
+     *       @OA\Property(property="target_account_id", type="string", nullable=true),
+     *       @OA\Property(property="category_id", type="string", nullable=true),
+     *       @OA\Property(property="type", type="string", enum={"income", "expense", "transfer"}),
+     *       @OA\Property(property="amount", type="number", format="float"),
+     *       @OA\Property(property="date", type="string", format="date"),
+     *       @OA\Property(property="notes", type="string", nullable=true)
+     *     )
+     *   ),
+     *   @OA\Response(response="default", ref="#/components/responses/globalResponse")
+     * )
+     */
     public function update(Request $request, $id)
     {
         $request->validate([
@@ -179,6 +251,16 @@ class TransactionController extends Controller
         return ResponseFormatter::success(new \App\Http\Resources\TransactionResource($transaction), 'Data berhasil diperbarui');
     }
 
+    /**
+     * @OA\Delete(
+     *   tags={"Api|Transaction"},
+     *   path="/api/transactions/{id}",
+     *   summary="Delete transaction",
+     *   security={{"authBearerToken":{}}},
+     *   @OA\Parameter(name="id", in="path", required=true, @OA\Schema(type="string")),
+     *   @OA\Response(response="default", ref="#/components/responses/globalResponse")
+     * )
+     */
     public function destroy(Request $request, $id)
     {
         $this->transactionRepository->delete($id, $request->user()->id);

@@ -16,6 +16,17 @@ class ReportController extends Controller
         $this->transactionRepository = $transactionRepository;
     }
 
+    /**
+     * @OA\Get(
+     *   tags={"Api|Report"},
+     *   path="/api/reports/monthly",
+     *   summary="Get monthly summary report",
+     *   security={{"authBearerToken":{}}},
+     *   @OA\Parameter(name="year", in="query", @OA\Schema(type="integer")),
+     *   @OA\Parameter(name="month", in="query", @OA\Schema(type="integer")),
+     *   @OA\Response(response="default", ref="#/components/responses/globalResponse")
+     * )
+     */
     public function monthly(Request $request)
     {
         $year = $request->year ?? date('Y');
@@ -39,6 +50,16 @@ class ReportController extends Controller
         ], 'Monthly report');
     }
 
+    /**
+     * @OA\Get(
+     *   tags={"Api|Report"},
+     *   path="/api/reports/yearly",
+     *   summary="Get yearly summary report",
+     *   security={{"authBearerToken":{}}},
+     *   @OA\Parameter(name="year", in="query", @OA\Schema(type="integer")),
+     *   @OA\Response(response="default", ref="#/components/responses/globalResponse")
+     * )
+     */
     public function yearly(Request $request)
     {
         $year = $request->year ?? date('Y');
@@ -66,6 +87,17 @@ class ReportController extends Controller
         return ResponseFormatter::success($monthlyData, 'Yearly report');
     }
 
+    /**
+     * @OA\Get(
+     *   tags={"Api|Report"},
+     *   path="/api/reports/category-expense",
+     *   summary="Get expense breakdown by category",
+     *   security={{"authBearerToken":{}}},
+     *   @OA\Parameter(name="year", in="query", @OA\Schema(type="integer")),
+     *   @OA\Parameter(name="month", in="query", @OA\Schema(type="integer")),
+     *   @OA\Response(response="default", ref="#/components/responses/globalResponse")
+     * )
+     */
     public function categoryExpense(Request $request)
     {
         $year = $request->year ?? date('Y');
