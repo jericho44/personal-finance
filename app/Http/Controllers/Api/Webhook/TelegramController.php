@@ -20,7 +20,7 @@ class TelegramController extends Controller
     protected $botToken;
 
     public function __construct(
-        AIService $aiService, 
+        AIService $aiService,
         TransactionInterface $transactionRepository,
         BudgetInterface $budgetRepository
     ) {
@@ -34,7 +34,7 @@ class TelegramController extends Controller
     {
         \Illuminate\Support\Facades\Log::info('Telegram Webhook Received', $request->all());
         $update = $request->all();
-        
+
         if (isset($update['callback_query'])) {
             return $this->handleCallbackQuery($update['callback_query']);
         }
@@ -97,12 +97,12 @@ class TelegramController extends Controller
     {
         Log::info('Processing Transaction for User', ['user_id' => $user->id, 'text' => $text]);
         $this->sendTelegramAction($chatId, 'typing');
-        
+
         $parseResult = $this->aiService->parseTransactionFromText($text, $user->id);
 
         if ($parseResult['status'] === 'success') {
             $data = $parseResult['data'];
-            
+
             // Store pending transaction in cache for 10 minutes
             $cacheKey = "pending_tx_{$user->id}";
             Cache::put($cacheKey, $data, 600);
@@ -120,7 +120,7 @@ class TelegramController extends Controller
     {
         $amountStr = number_format($data['amount'], 0);
         $typeStr = $data['type'] === 'income' ? '💰 Income' : '💸 Expense';
-        
+
         // Find category name (if it's just ID from AI, we'll try to get it from DB if available)
         $category = \App\Models\Category::find($data['category_id']);
         $categoryName = $category ? $category->name : 'Unknown';
@@ -159,14 +159,15 @@ class TelegramController extends Controller
         Log::info('Handling Callback Query', ['data' => $data, 'telegram_id' => $telegramId]);
 
         $user = User::where('telegram_id', $telegramId)->first();
-        if (!$user) return response()->json(['status' => 'ok']);
+        if (!$user)
+            return response()->json(['status' => 'ok']);
 
         $cacheKey = "pending_tx_{$user->id}";
         $pendingTx = Cache::get($cacheKey);
 
         $isManual = str_starts_with($data, 'tx_m_') || $data === 'tx_cancel';
         $isCategorySetting = str_starts_with($data, 'tx_set_cat_');
-        
+
         if (!$pendingTx && !$isManual && !$isCategorySetting && !str_starts_with($data, 'cmd_')) {
             $this->editTelegramMessage($chatId, $messageId, "❌ Session expired or no pending transaction found.");
             return response()->json(['status' => 'ok']);
@@ -190,7 +191,8 @@ class TelegramController extends Controller
                 ];
 
                 $this->transactionRepository->create($transactionData, $user->id);
-                $this->editTelegramMessage($chatId, $messageId, "✅ *Transaction Saved!*");
+                Log::info("Telegram Transaction Saved Successfully", ['user_id' => $user->id, 'amount' => $pendingTx['amount']]);
+                $this->editTelegramMessage($chatId, $messageId, "✅ *Transaction Saved!*", 'Markdown');
                 Cache::forget($cacheKey);
             } catch (\Exception $e) {
                 Log::error("Telegram Transaction Save Error: " . $e->getMessage());
@@ -216,7 +218,7 @@ class TelegramController extends Controller
         } elseif (str_starts_with($data, 'tx_m_cat_')) {
             $categoryId = str_replace('tx_m_cat_', '', $data);
             Log::info('Setting Category for Manual Entry', ['category_id' => $categoryId]);
-            
+
             $category = \App\Models\Category::find($categoryId);
             if (!$category) {
                 $this->editTelegramMessage($chatId, $messageId, "❌ Error: Category not found.");
@@ -230,7 +232,7 @@ class TelegramController extends Controller
                 'type' => $type
             ];
             Cache::put("tx_m_temp_state_{$user->id}", $tempState, 600);
-            
+
             $this->showAccountSelection($chatId, $messageId, $user->id, 'tx_m_acc_');
         } elseif (str_starts_with($data, 'tx_m_acc_')) {
             $accountId = str_replace('tx_m_acc_', '', $data);
@@ -284,7 +286,7 @@ class TelegramController extends Controller
             $query->where('type', $typeFilter);
         }
         $categories = $query->get();
-        
+
         $buttons = [];
         $row = [];
         foreach ($categories as $category) {
@@ -294,7 +296,8 @@ class TelegramController extends Controller
                 $row = [];
             }
         }
-        if (!empty($row)) $buttons[] = $row;
+        if (!empty($row))
+            $buttons[] = $row;
 
         $buttons[] = [['text' => '⬅️ Back', 'callback_data' => $prefix === 'tx_m_cat_' ? 'tx_m_start' : 'tx_back_to_confirm']];
         $keyboard = ['inline_keyboard' => $buttons];
@@ -304,7 +307,7 @@ class TelegramController extends Controller
     protected function showAccountSelection($chatId, $messageId, $userId, $prefix = 'tx_m_acc_')
     {
         $accounts = \App\Models\Account::where('user_id', $userId)->get();
-        
+
         $buttons = [];
         $row = [];
         foreach ($accounts as $account) {
@@ -314,7 +317,8 @@ class TelegramController extends Controller
                 $row = [];
             }
         }
-        if (!empty($row)) $buttons[] = $row;
+        if (!empty($row))
+            $buttons[] = $row;
 
         $buttons[] = [['text' => '⬅️ Back', 'callback_data' => 'tx_m_start']];
 
@@ -335,11 +339,12 @@ class TelegramController extends Controller
             $state['amount'] = $amount;
             $state['step'] = 'note';
             Cache::put("tx_manual_state_{$user->id}", $state, 600);
-            
+
             $this->sendTelegramMessage($chatId, "✅ Amount: *" . number_format($amount, 0) . "*\n\nNow, type a short *Note* (or type 'skip'):", 'Markdown');
         } elseif ($state['step'] === 'note') {
             $note = $text;
-            if (strtolower($text) === 'skip') $note = "Manual entry via Bot";
+            if (strtolower($text) === 'skip')
+                $note = "Manual entry via Bot";
 
             try {
                 $transactionData = [
@@ -352,7 +357,7 @@ class TelegramController extends Controller
                 ];
 
                 $this->transactionRepository->create($transactionData, $user->id);
-                
+
                 $msg = "✅ *Manual Transaction Saved!*\n\n";
                 $msg .= "*Amount:* " . number_format($state['amount'], 0) . "\n";
                 $msg .= "*Account:* " . $state['account_name'] . "\n";
@@ -373,10 +378,10 @@ class TelegramController extends Controller
     protected function handleInsight($user, $chatId)
     {
         $this->sendTelegramAction($chatId, 'typing');
-        
+
         $msg = "🔍 *Analyzing your finances...*\n";
         $msg .= "This usually takes about 30-60 seconds. I'll send you the results as soon as they are ready! ⏳";
-        
+
         $this->sendTelegramMessage($chatId, $msg, 'Markdown');
 
         // Dispatch background job to avoid webhook timeout
@@ -409,7 +414,7 @@ class TelegramController extends Controller
     {
         $amountStr = number_format($data['amount'], 0);
         $typeStr = $data['type'] === 'income' ? '💰 Income' : '💸 Expense';
-        
+
         $category = \App\Models\Category::find($data['category_id']);
         $categoryName = $category ? $category->name : 'Unknown';
 
@@ -448,7 +453,7 @@ class TelegramController extends Controller
             $msg .= "📊 *AI Insights*: /insight (Financial Analysis)\n";
             $msg .= "🧭 *Commands Menu*: /menu (Show all buttons)\n";
             $msg .= "❌ *Clear State*: /cancel";
-            
+
             $this->sendTelegramMessage($chatId, $msg, 'Markdown');
         } elseif ($text === '/manual') {
             $keyboard = [
@@ -476,7 +481,8 @@ class TelegramController extends Controller
 
     protected function sendTelegramMessage($chatId, $text, $parseMode = null, $replyMarkup = null)
     {
-        if (!$this->botToken) return;
+        if (!$this->botToken)
+            return;
 
         $params = [
             'chat_id' => $chatId,
@@ -488,12 +494,16 @@ class TelegramController extends Controller
             $params['reply_markup'] = json_encode($replyMarkup);
         }
 
-        Http::post("https://api.telegram.org/bot{$this->botToken}/sendMessage", $params);
+        $response = Http::post("https://api.telegram.org/bot{$this->botToken}/sendMessage", $params);
+        if ($response->failed()) {
+            Log::error("Telegram Send Message Failed", ['response' => $response->json(), 'params' => $params]);
+        }
     }
 
     protected function editTelegramMessage($chatId, $messageId, $text, $parseMode = null, $replyMarkup = null)
     {
-        if (!$this->botToken) return;
+        if (!$this->botToken)
+            return;
 
         $params = [
             'chat_id' => $chatId,
@@ -506,12 +516,16 @@ class TelegramController extends Controller
             $params['reply_markup'] = json_encode($replyMarkup);
         }
 
-        Http::post("https://api.telegram.org/bot{$this->botToken}/editMessageText", $params);
+        $response = Http::post("https://api.telegram.org/bot{$this->botToken}/editMessageText", $params);
+        if ($response->failed()) {
+            Log::error("Telegram Edit Message Failed", ['response' => $response->json(), 'params' => $params]);
+        }
     }
 
     protected function sendTelegramAction($chatId, $action)
     {
-        if (!$this->botToken) return;
+        if (!$this->botToken)
+            return;
 
         Http::post("https://api.telegram.org/bot{$this->botToken}/sendChatAction", [
             'chat_id' => $chatId,

@@ -31,14 +31,14 @@ class AIService
         try {
             $response = \Illuminate\Support\Facades\Http::timeout(120)
                 ->post($this->baseUrl . 'gemini-2.5-flash:generateContent?key=' . $this->apiKey, [
-                'contents' => [
-                    [
-                        'parts' => [
-                            ['text' => $prompt]
+                    'contents' => [
+                        [
+                            'parts' => [
+                                ['text' => $prompt]
+                            ]
                         ]
                     ]
-                ]
-            ]);
+                ]);
 
             if ($response->failed()) {
                 throw new \Exception('Gemini API Error: ' . $response->body());
@@ -51,8 +51,7 @@ class AIService
                 'status' => 'success',
                 'content' => $text,
             ];
-        }
-        catch (\Exception $e) {
+        } catch (\Exception $e) {
             return [
                 'status' => 'error',
                 'message' => 'AI Failed: ' . $e->getMessage()
@@ -111,15 +110,16 @@ Your Insights:
         $prompt = $this->buildTransactionParserPrompt($text, $categories->toArray(), $accounts->toArray());
 
         try {
-            $response = \Illuminate\Support\Facades\Http::post($this->baseUrl . 'gemini-2.0-flash:generateContent?key=' . $this->apiKey, [
-                'contents' => [
-                    [
-                        'parts' => [
-                            ['text' => $prompt]
+            $response = \Illuminate\Support\Facades\Http::timeout(60)
+                ->post($this->baseUrl . 'gemini-2.5-flash:generateContent?key=' . $this->apiKey, [
+                    'contents' => [
+                        [
+                            'parts' => [
+                                ['text' => $prompt]
+                            ]
                         ]
                     ]
-                ]
-            ]);
+                ]);
 
             if ($response->failed()) {
                 throw new \Exception('Gemini API Error: ' . $response->body());
@@ -145,8 +145,7 @@ Your Insights:
                 'status' => 'success',
                 'data' => $data,
             ];
-        }
-        catch (\Exception $e) {
+        } catch (\Exception $e) {
             return [
                 'status' => 'error',
                 'message' => 'AI Failed: ' . $e->getMessage()
