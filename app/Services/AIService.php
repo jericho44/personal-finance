@@ -174,23 +174,25 @@ AVAILABLE ACCOUNTS:
 
 RULES:
 1. Identify the 'amount' (number only).
-2. Map to the closest 'category_id' from the list. If unsure, pick the most logical one.
-3. Map to an 'account_id' if mentioned. If no account is mentioned, use the ID of the first account in the list.
-4. Identify 'type' (must be 'expense' or 'income').
-5. Identify 'date' (format: YYYY-MM-DD).
+2. Map to the closest 'category_id' from the list. If unsure, pick the most logical one. If the transaction is a transfer between accounts, category_id can be null or 0.
+3. Map 'account_id' to the source account. If no source account is mentioned, use the ID of the first account in the list.
+4. Identify 'type' (must be 'expense', 'income', or 'transfer').
+5. If type is 'transfer', you MUST identify 'target_account_id' as the destination account. If not clear, set it to null.
+6. Identify 'date' (format: YYYY-MM-DD).
    - If it says 'today', use {$today}.
    - If it says 'yesterday', subtract 1 day from {$today}.
    - If it mentions a day or specific date (e.g., 'monday', 'Mar 20'), calculate the correct date based on the Current Date: {$today}.
-6. Provide a short 'description'.
+7. Provide a short 'description'.
 
 RESPONSE FORMAT (JSON ONLY):
 {
     \"amount\": 50000,
     \"category_id\": 1,
     \"account_id\": 1,
-    \"type\": \"expense\",
+    \"target_account_id\": 2,
+    \"type\": \"transfer\",
     \"date\": \"2024-03-20\",
-    \"description\": \"Coffee at Starbucks\",
+    \"description\": \"Transfer to Savings\",
     \"status\": \"parsed\"
 }
 ";

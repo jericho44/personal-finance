@@ -34,6 +34,7 @@ class TelegramSetupMenuCommand extends Command
         $commands = [
             ['command' => 'start', 'description' => '⚠️ PENTING! Panduan BOT'],
             ['command' => 'manual', 'description' => '📝 Catat Transaksi Manual'],
+            ['command' => 'transfer', 'description' => '🔄 Transfer Antar Rekening'],
             ['command' => 'insight', 'description' => '📊 AI Financial Insight'],
             ['command' => 'menu', 'description' => '🛠️ Menu Utama'],
             ['command' => 'help', 'description' => '❓ Bantuan & Cara Pakai'],

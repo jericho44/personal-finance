@@ -120,7 +120,7 @@ class TelegramController extends Controller
     protected function sendConfirmationMessage($chatId, $data)
     {
         $amountStr = number_format($data['amount'], 0);
-        $typeStr = $data['type'] === 'income' ? '💰 Income' : '💸 Expense';
+        $typeStr = $data['type'] === 'income' ? '💰 Income' : ($data['type'] === 'expense' ? '💸 Expense' : '🔄 Transfer');
 
         // Find category name (if it's just ID from AI, we'll try to get it from DB if available)
         $category = \App\Models\Category::find($data['category_id']);
@@ -129,11 +129,20 @@ class TelegramController extends Controller
         $account = \App\Models\Account::find($data['account_id']);
         $accountName = $account ? $account->name : 'Unknown';
 
+        $targetAccountName = null;
+        if ($data['type'] === 'transfer' && isset($data['target_account_id'])) {
+            $targetAccount = \App\Models\Account::find($data['target_account_id']);
+            $targetAccountName = $targetAccount ? $targetAccount->name : 'Unknown';
+        }
+
         $msg = "📋 *Is this correct?*\n\n";
         $msg .= "*Date:* " . Carbon::parse($data['date'])->format('d F Y') . " \n";
         $msg .= "*Amount:* {$amountStr}\n";
         $msg .= "*Type:* {$typeStr}\n";
         $msg .= "*Account:* {$accountName}\n";
+        if ($targetAccountName) {
+            $msg .= "*Target Account:* {$targetAccountName}\n";
+        }
         $msg .= "*Category:* {$categoryName}\n";
         $msg .= "*Desc:* {$data['description']}";
 
@@ -172,7 +181,7 @@ class TelegramController extends Controller
         $cacheKey = "pending_tx_{$user->id}";
         $pendingTx = Cache::get($cacheKey);
 
-        $isManual = str_starts_with($data, 'tx_m_') || $data === 'tx_cancel';
+        $isManual = str_starts_with($data, 'tx_m_') || $data === 'tx_cancel' || str_starts_with($data, 'tx_t_src_') || str_starts_with($data, 'tx_t_dst_');
         $isCategorySetting = str_starts_with($data, 'tx_set_cat_');
         $isAccountSetting = str_starts_with($data, 'tx_set_acc_');
 
@@ -183,19 +192,41 @@ class TelegramController extends Controller
 
         if ($data === 'cmd_manual') {
             $this->showManualTypeSelection($chatId, $messageId);
+        } elseif ($data === 'cmd_transfer') {
+            $this->showAccountSelection($chatId, $messageId, $user->id, 'tx_t_src_');
         } elseif ($data === 'cmd_insight') {
             $this->handleInsight($user, $chatId);
         } elseif ($data === 'cmd_help') {
             $this->handleCommand($user, $chatId, '/help');
         } elseif ($data === 'tx_save') {
             try {
+                // Validate accounts exist and belong to user
+                $account = \App\Models\Account::where('id', $pendingTx['account_id'])
+                    ->where('user_id', $user->id)
+                    ->first();
+                if (!$account) {
+                    $this->editTelegramMessage($chatId, $messageId, "❌ Invalid source account selected.");
+                    return response()->json(['status' => 'ok']);
+                }
+
+                if ($pendingTx['type'] === 'transfer' && isset($pendingTx['target_account_id'])) {
+                    $targetAccount = \App\Models\Account::where('id', $pendingTx['target_account_id'])
+                        ->where('user_id', $user->id)
+                        ->first();
+                    if (!$targetAccount) {
+                        $this->editTelegramMessage($chatId, $messageId, "❌ Invalid target account selected. Please change target account.");
+                        return response()->json(['status' => 'ok']);
+                    }
+                }
+
                 $transactionData = [
                     'account_id' => $pendingTx['account_id'],
-                    'category_id' => $pendingTx['category_id'],
+                    'target_account_id' => $pendingTx['target_account_id'] ?? null,
+                    'category_id' => $pendingTx['category_id'] ?? null,
                     'amount' => $pendingTx['amount'],
                     'type' => $pendingTx['type'],
                     'date' => $pendingTx['date'],
-                    'notes' => $pendingTx['description'],
+                    'notes' => $pendingTx['description'] ?? null,
                 ];
 
                 $this->transactionRepository->create($transactionData, $user->id);
@@ -275,7 +306,52 @@ class TelegramController extends Controller
         } elseif ($data === 'tx_cancel') {
             Cache::forget($cacheKey);
             Cache::forget("tx_manual_state_{$user->id}");
+            Cache::forget("tx_t_src_{$user->id}");
             $this->editTelegramMessage($chatId, $messageId, "❌ Transaction cancelled.");
+        } elseif (str_starts_with($data, 'tx_t_src_')) {
+            if ($data === 'tx_t_src_back') {
+                $this->showAccountSelection($chatId, $messageId, $user->id, 'tx_t_src_');
+                return response()->json(['status' => 'ok']);
+            }
+            $accountId = str_replace('tx_t_src_', '', $data);
+            $account = \App\Models\Account::find($accountId);
+            if (!$account) {
+                 $this->editTelegramMessage($chatId, $messageId, "❌ Account not found.");
+                 return response()->json(['status' => 'ok']);
+            }
+            Cache::put("tx_t_src_{$user->id}", [
+                'account_id' => $accountId,
+                'account_name' => $account->name
+            ], 600);
+            
+            $this->showAccountSelection($chatId, $messageId, $user->id, 'tx_t_dst_');
+        } elseif (str_starts_with($data, 'tx_t_dst_')) {
+             $targetAccountId = str_replace('tx_t_dst_', '', $data);
+             $targetAccount = \App\Models\Account::find($targetAccountId);
+             
+             $srcState = Cache::get("tx_t_src_{$user->id}");
+             if (!$srcState || !$targetAccount) {
+                 $this->editTelegramMessage($chatId, $messageId, "❌ Session expired or account not found.");
+                 return response()->json(['status' => 'ok']);
+             }
+             
+             Cache::put("tx_manual_state_{$user->id}", [
+                'step' => 'amount',
+                'category_id' => null,
+                'category_name' => 'Transfer',
+                'account_id' => $srcState['account_id'],
+                'account_name' => $srcState['account_name'],
+                'target_account_id' => $targetAccountId,
+                'target_account_name' => $targetAccount->name,
+                'type' => 'transfer'
+            ], 600);
+
+            $msg = "📥 *Transfer Entry*\n";
+            $msg .= "From: *{$srcState['account_name']}*\n";
+            $msg .= "To: *{$targetAccount->name}*\n\n";
+            $msg .= "Please type the *Amount*:";
+
+            $this->editTelegramMessage($chatId, $messageId, $msg, 'Markdown');
         }
 
         return response()->json(['status' => 'ok']);
@@ -335,11 +411,30 @@ class TelegramController extends Controller
         if (!empty($row))
             $buttons[] = $row;
 
-        $buttons[] = [['text' => '⬅️ Back', 'callback_data' => $prefix === 'tx_set_acc_' ? 'tx_back_to_confirm' : 'tx_m_start']];
+        if ($prefix === 'tx_set_acc_') {
+            $buttons[] = [['text' => '⬅️ Back', 'callback_data' => 'tx_back_to_confirm']];
+        } else if ($prefix === 'tx_m_acc_') {
+            $buttons[] = [['text' => '⬅️ Back', 'callback_data' => 'tx_m_start']];
+        } else if ($prefix === 'tx_t_src_') {
+            $buttons[] = [['text' => '❌ Cancel', 'callback_data' => 'tx_cancel']];
+        } else if ($prefix === 'tx_t_dst_') {
+            $buttons[] = [['text' => '⬅️ Back', 'callback_data' => 'tx_t_src_back']];
+        }
 
         $keyboard = ['inline_keyboard' => $buttons];
 
-        $this->editTelegramMessage($chatId, $messageId, "🏦 *Select an Account:*", 'Markdown', $keyboard);
+        $msg = "🏦 *Select an Account:*";
+        if ($prefix === 'tx_t_src_') {
+            $msg = "🏦 *Select Source Account (From):*";
+        } elseif ($prefix === 'tx_t_dst_') {
+            $msg = "🏦 *Select Target Account (To):*";
+        }
+
+        if ($messageId) {
+            $this->editTelegramMessage($chatId, $messageId, $msg, 'Markdown', $keyboard);
+        } else {
+            $this->sendTelegramMessage($chatId, $msg, 'Markdown', $keyboard);
+        }
     }
 
     protected function handleManualEntryStep($user, $chatId, $text, $state)
@@ -364,7 +459,8 @@ class TelegramController extends Controller
             try {
                 $transactionData = [
                     'account_id' => $state['account_id'],
-                    'category_id' => $state['category_id'],
+                    'target_account_id' => $state['target_account_id'] ?? null,
+                    'category_id' => $state['category_id'] ?? null,
                     'amount' => $state['amount'],
                     'type' => $state['type'],
                     'date' => now()->format('Y-m-d'),
@@ -373,14 +469,20 @@ class TelegramController extends Controller
 
                 $this->transactionRepository->create($transactionData, $user->id);
 
-                $msg = "✅ *Manual Transaction Saved!*\n\n";
+                $msg = "✅ *" . ($state['type'] === 'transfer' ? 'Transfer' : 'Manual') . " Transaction Saved!*\n\n";
                 $msg .= "*Amount:* " . number_format($state['amount'], 0) . "\n";
-                $msg .= "*Account:* " . $state['account_name'] . "\n";
-                $msg .= "*Category:* " . $state['category_name'] . "\n";
+                if ($state['type'] === 'transfer') {
+                    $msg .= "*From:* " . $state['account_name'] . "\n";
+                    $msg .= "*To:* " . ($state['target_account_name'] ?? 'N/A') . "\n";
+                } else {
+                    $msg .= "*Account:* " . $state['account_name'] . "\n";
+                    $msg .= "*Category:* " . $state['category_name'] . "\n";
+                }
                 $msg .= "*Note:* " . $note;
 
                 $this->sendTelegramMessage($chatId, $msg, 'Markdown');
                 Cache::forget("tx_manual_state_{$user->id}");
+                Cache::forget("tx_t_src_{$user->id}");
             } catch (\Exception $e) {
                 Log::error("Manual Transaction Save Error: " . $e->getMessage());
                 $this->sendTelegramMessage($chatId, "❌ Failed to save transaction. Please try again.");
@@ -411,10 +513,13 @@ class TelegramController extends Controller
             'inline_keyboard' => [
                 [
                     ['text' => '📝 Manual Entry', 'callback_data' => 'cmd_manual'],
-                    ['text' => '📊 AI Insight', 'callback_data' => 'cmd_insight'],
+                    ['text' => '🔄 Transfer', 'callback_data' => 'cmd_transfer'],
                 ],
                 [
+                    ['text' => '📊 AI Insight', 'callback_data' => 'cmd_insight'],
                     ['text' => '❓ Help Guide', 'callback_data' => 'cmd_help'],
+                ],
+                [
                     ['text' => '❌ Cancel Entry', 'callback_data' => 'tx_cancel'],
                 ]
             ]
@@ -428,7 +533,7 @@ class TelegramController extends Controller
     protected function editConfirmationMessage($chatId, $messageId, $data)
     {
         $amountStr = number_format($data['amount'], 0);
-        $typeStr = $data['type'] === 'income' ? '💰 Income' : '💸 Expense';
+        $typeStr = $data['type'] === 'income' ? '💰 Income' : ($data['type'] === 'expense' ? '💸 Expense' : '🔄 Transfer');
 
         $category = \App\Models\Category::find($data['category_id']);
         $categoryName = $category ? $category->name : 'Unknown';
@@ -438,11 +543,20 @@ class TelegramController extends Controller
         $account = \App\Models\Account::find($data['account_id']);
         $accountName = $account ? $account->name : 'Unknown';
 
+        $targetAccountName = null;
+        if ($data['type'] === 'transfer' && isset($data['target_account_id'])) {
+            $targetAccount = \App\Models\Account::find($data['target_account_id']);
+            $targetAccountName = $targetAccount ? $targetAccount->name : 'Unknown';
+        }
+
         $msg = "📋 *Is this correct?*\n\n";
         $msg .= "*Date:* {$dateFormatted}\n";
         $msg .= "*Amount:* {$amountStr}\n";
         $msg .= "*Type:* {$typeStr}\n";
         $msg .= "*Account:* {$accountName}\n";
+        if ($targetAccountName) {
+            $msg .= "*Target Account:* {$targetAccountName}\n";
+        }
         $msg .= "*Category:* {$categoryName}\n";
         $msg .= "*Desc:* {$data['description']}";
 
@@ -473,11 +587,14 @@ class TelegramController extends Controller
             $msg .= "🗣 *Auto Entry*: Just type like you talk!\n";
             $msg .= "   Example: _'Lunch 50k'_ or _'Gaji 10jt'_\n\n";
             $msg .= "📝 *Manual Entry*: /manual (Step-by-step)\n";
+            $msg .= "🔄 *Transfer*: /transfer (Move balance)\n";
             $msg .= "📊 *AI Insights*: /insight (Financial Analysis)\n";
             $msg .= "🧭 *Commands Menu*: /menu (Show all buttons)\n";
             $msg .= "❌ *Clear State*: /cancel";
 
             $this->sendTelegramMessage($chatId, $msg, 'Markdown');
+        } elseif ($text === '/transfer') {
+            $this->showAccountSelection($chatId, null, $user->id, 'tx_t_src_');
         } elseif ($text === '/manual') {
             $keyboard = [
                 'inline_keyboard' => [
