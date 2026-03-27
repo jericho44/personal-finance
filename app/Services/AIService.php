@@ -177,7 +177,10 @@ RULES:
 2. Map to the closest 'category_id' from the list. If unsure, pick the most logical one.
 3. Map to an 'account_id' if mentioned. If no account is mentioned, use the ID of the first account in the list.
 4. Identify 'type' (must be 'expense' or 'income').
-5. Identify 'date' (format: YYYY-MM-DD). If it says 'today', use {$today}.
+5. Identify 'date' (format: YYYY-MM-DD).
+   - If it says 'today', use {$today}.
+   - If it says 'yesterday', subtract 1 day from {$today}.
+   - If it mentions a day or specific date (e.g., 'monday', 'Mar 20'), calculate the correct date based on the Current Date: {$today}.
 6. Provide a short 'description'.
 
 RESPONSE FORMAT (JSON ONLY):

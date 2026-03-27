@@ -11,6 +11,7 @@ use App\Interfaces\TransactionInterface;
 use App\Interfaces\BudgetInterface;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Carbon;
 
 class TelegramController extends Controller
 {
@@ -125,9 +126,14 @@ class TelegramController extends Controller
         $category = \App\Models\Category::find($data['category_id']);
         $categoryName = $category ? $category->name : 'Unknown';
 
+        $account = \App\Models\Account::find($data['account_id']);
+        $accountName = $account ? $account->name : 'Unknown';
+
         $msg = "📋 *Is this correct?*\n\n";
+        $msg .= "*Date:* " . Carbon::parse($data['date'])->format('d F Y') . " \n";
         $msg .= "*Amount:* {$amountStr}\n";
         $msg .= "*Type:* {$typeStr}\n";
+        $msg .= "*Account:* {$accountName}\n";
         $msg .= "*Category:* {$categoryName}\n";
         $msg .= "*Desc:* {$data['description']}";
 
@@ -141,6 +147,7 @@ class TelegramController extends Controller
                     ['text' => '📂 Change Category', 'callback_data' => 'tx_categories'],
                 ],
                 [
+                    ['text' => '🏦 Change Account', 'callback_data' => 'tx_accounts'],
                     ['text' => '❌ Cancel', 'callback_data' => 'tx_cancel'],
                 ]
             ]
@@ -167,8 +174,9 @@ class TelegramController extends Controller
 
         $isManual = str_starts_with($data, 'tx_m_') || $data === 'tx_cancel';
         $isCategorySetting = str_starts_with($data, 'tx_set_cat_');
+        $isAccountSetting = str_starts_with($data, 'tx_set_acc_');
 
-        if (!$pendingTx && !$isManual && !$isCategorySetting && !str_starts_with($data, 'cmd_')) {
+        if (!$pendingTx && !$isManual && !$isCategorySetting && !$isAccountSetting && !str_starts_with($data, 'cmd_')) {
             $this->editTelegramMessage($chatId, $messageId, "❌ Session expired or no pending transaction found.");
             return response()->json(['status' => 'ok']);
         }
@@ -207,6 +215,13 @@ class TelegramController extends Controller
         } elseif (str_starts_with($data, 'tx_set_cat_')) {
             $categoryId = str_replace('tx_set_cat_', '', $data);
             $pendingTx['category_id'] = $categoryId;
+            Cache::put($cacheKey, $pendingTx, 600);
+            $this->editConfirmationMessage($chatId, $messageId, $pendingTx);
+        } elseif ($data === 'tx_accounts') {
+            $this->showAccountSelection($chatId, $messageId, $user->id, 'tx_set_acc_');
+        } elseif (str_starts_with($data, 'tx_set_acc_')) {
+            $accountId = str_replace('tx_set_acc_', '', $data);
+            $pendingTx['account_id'] = $accountId;
             Cache::put($cacheKey, $pendingTx, 600);
             $this->editConfirmationMessage($chatId, $messageId, $pendingTx);
         } elseif ($data === 'tx_m_start') {
@@ -320,7 +335,7 @@ class TelegramController extends Controller
         if (!empty($row))
             $buttons[] = $row;
 
-        $buttons[] = [['text' => '⬅️ Back', 'callback_data' => 'tx_m_start']];
+        $buttons[] = [['text' => '⬅️ Back', 'callback_data' => $prefix === 'tx_set_acc_' ? 'tx_back_to_confirm' : 'tx_m_start']];
 
         $keyboard = ['inline_keyboard' => $buttons];
 
@@ -418,9 +433,16 @@ class TelegramController extends Controller
         $category = \App\Models\Category::find($data['category_id']);
         $categoryName = $category ? $category->name : 'Unknown';
 
+        $dateFormatted = Carbon::parse($data['date'])->format('d F Y');
+
+        $account = \App\Models\Account::find($data['account_id']);
+        $accountName = $account ? $account->name : 'Unknown';
+
         $msg = "📋 *Is this correct?*\n\n";
+        $msg .= "*Date:* {$dateFormatted}\n";
         $msg .= "*Amount:* {$amountStr}\n";
         $msg .= "*Type:* {$typeStr}\n";
+        $msg .= "*Account:* {$accountName}\n";
         $msg .= "*Category:* {$categoryName}\n";
         $msg .= "*Desc:* {$data['description']}";
 
@@ -434,6 +456,7 @@ class TelegramController extends Controller
                     ['text' => '📂 Change Category', 'callback_data' => 'tx_categories'],
                 ],
                 [
+                    ['text' => '🏦 Change Account', 'callback_data' => 'tx_accounts'],
                     ['text' => '❌ Cancel', 'callback_data' => 'tx_cancel'],
                 ]
             ]
@@ -487,8 +510,11 @@ class TelegramController extends Controller
         $params = [
             'chat_id' => $chatId,
             'text' => $text,
-            'parse_mode' => $parseMode
         ];
+
+        if ($parseMode) {
+            $params['parse_mode'] = $parseMode;
+        }
 
         if ($replyMarkup) {
             $params['reply_markup'] = json_encode($replyMarkup);
@@ -509,8 +535,11 @@ class TelegramController extends Controller
             'chat_id' => $chatId,
             'message_id' => $messageId,
             'text' => $text,
-            'parse_mode' => $parseMode
         ];
+
+        if ($parseMode) {
+            $params['parse_mode'] = $parseMode;
+        }
 
         if ($replyMarkup) {
             $params['reply_markup'] = json_encode($replyMarkup);
